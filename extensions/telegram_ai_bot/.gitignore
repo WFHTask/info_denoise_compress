@@ -1,0 +1,21 @@
+# General Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+ENV/
+
+# Project Specific
+output/
+*.log
+*.sqlite3
+*.db
