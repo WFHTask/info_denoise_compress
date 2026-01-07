@@ -1,0 +1,131 @@
+/胖东来|于东来/ => 胖东来
+
+/DeepSeek|梁文锋/i => DeepSeek
+
+/华为|鸿蒙|HarmonyOS|任正非/i => 华为
+
+/比亚迪|王传福/ => 比亚迪
+
+/大疆|\bDJI\b/i => 大疆
+
+/宇树|王兴兴/ => 宇树机器人
+
+/智元|灵犀|稚晖君|彭志辉/ => 智元机器人
+
+/黑神话|冯骥/ => 黑神话悟空
+
+/影之刃零|梁其伟/ => 影之刃零
+
+/哪吒|杨宇/ => 哪吒电影
+!车
+!餐
+
+/三体|流浪地球|刘慈欣|郭帆/ => 三体/流浪地球
+
+申奥
+
+/京东|刘强东/ => 京东
+
+/字节|bytedance|张一鸣/i => 字节跳动
+
+/特斯拉|马斯克/ => 特斯拉
+
+/微软|\bMicrosoft\b/i => 微软
+
+/英伟达|\bNVIDIA\b|黄仁勋/i => 英伟达
+
+/\bAMD\b/i => AMD
+
+/谷歌|\bgoogle\b|\bgemini\b|\bdeepMind\b/i => 谷歌
+
+/\bchatgpt\b|\bopenai\b|\bsora\b/i => OpenAI
+
+/\bclaude\b|Anthropic/i => Claude
+
+/\biphone\b|\bipad\b|\bmac\b|\bios\b/i => 苹果产品
+
+/(?<![a-zA-Z])ai(?![a-zA-Z])/i => AI 相关
+人工智能
+
+自动驾驶
+
+机器人
+
+国产
+中国
+
+美国
+日本
+韩国
+
+芯片
+光刻机
+
+科技
+
+核能
+
+水电站
+雅鲁藏布江
+
+新质生产力
+
+/月球|登月|火星|宇宙|飞船|航空/ => 航天航空
+
+# =============== Web3/加密货币关键词 ===============
+
+# 主流加密货币
+/\bBTC\b|\bBitcoin\b|比特币/i => 比特币
+/\bETH\b|\bEthereum\b|以太坊/i => 以太坊
+/\bSOL\b|\bSolana\b/i => Solana
+/\bBNB\b|币安链/i => BNB Chain
+
+# DeFi 相关
+/\bDeFi\b|去中心化金融/i => DeFi
+/\bDEX\b|去中心化交易/i => DEX
+/\bNFT\b|数字藏品/i => NFT
+/\bDAO\b|去中心化组织/i => DAO
+/稳定币|\bUSDT\b|\bUSDC\b|\bDAI\b/i => 稳定币
+/\bRWA\b|现实世界资产/i => RWA
+
+# 投融资/重大事件（核心信号）
+/融资|投资|收购|并购|IPO|上市/ => 投融资
+!空投
+!广告
+!福利
+!抽奖
+
+# 安全事件（核心信号）
+/黑客|攻击|漏洞|安全|被盗|损失|exploit/i => 安全事件
+
+# 协议更新（核心信号）
+/升级|更新|硬分叉|软分叉|主网|测试网|版本/ => 协议更新
+
+# 监管政策
+/监管|合规|SEC|CFTC|政策|法规|立法/ => 监管政策
+/ETF|现货ETF|期货ETF/ => ETF
+
+# 交易所
+/\bBinance\b|币安/i => 币安
+/\bCoinbase\b/i => Coinbase
+/\bOKX\b|\bOKEx\b/i => OKX
+
+# Layer2 / 扩容
+/\bLayer2\b|\bL2\b|二层|Rollup|ZK|零知识/i => Layer2
+
+# Web3 基础设施
+/\bWeb3\b|区块链|链上|智能合约/i => Web3
+/钱包|Wallet|MetaMask/i => 钱包
+
+# AI + Crypto
+/AI.*Crypto|Crypto.*AI|AI Agent|人工智能.*区块链/i => AI+Crypto
+
+# 全局过滤词 - 过滤低质量内容
+[GLOBAL_FILTER]
+!空投.*领取
+!免费.*空投
+!抽奖.*送
+!福利.*活动
+!广告
+!推广
+!带货
