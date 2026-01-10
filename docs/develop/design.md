@@ -1,7 +1,13 @@
 # Design Document
 
+> **相关文档**：
+> - [API 配置与 Prompt 调优指南](../api-config-guide.md)
+> - [Prompt 合集](../prompts.md)
+> - [选型报告](../selection-report.md)
+
 ## Overview
 
+本系统基于 TrendRadar 开源框架构建 Web3 信息智能聚合与降噪推送系统。
 本系统基于 TrendRadar 开源框架构建 Web3 信息智能聚合与降噪推送系统。系统采用模块化架构，包含数据采集层、AI 处理层、用户管理层和消息推送层。部署在本地 Windows 电脑上通过 Docker 容器化运行，使用企业微信 (WeCom) Webhook 实现消息推送。
 
 ### 技术选型理由
@@ -510,3 +516,33 @@ hypothesis:
   max_examples: 100
   deadline: 5000
 ```
+
+## 附录
+
+### 配置文档
+
+详细的 API 配置和 Prompt 调优过程请参考：
+
+- **[API 配置与 Prompt 调优指南](../api-config-guide.md)**
+  - RSS 源配置（15 个已接入）
+  - Web3 爬虫配置
+  - 推送渠道 API 配置
+  - AI API 配置
+  - Prompt 调优过程记录
+
+- **[Prompt 合集](../prompts.md)**
+  - 信息降噪 Prompt
+  - 摘要生成 Prompt
+  - 重要性评分 Prompt
+  - 调优历程记录
+
+### 数据源状态
+
+当前系统已接入 17 个数据源：
+
+| 类型 | 数量 | 状态 |
+|-----|------|-----|
+| RSS 源 | 15 | 14 正常 / 1 异常 |
+| Web3 爬虫 | 2 | 1 正常 / 1 SSL 过期 |
+
+详细配置见 `config/config.yaml`。

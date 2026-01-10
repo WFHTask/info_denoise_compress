@@ -381,71 +381,11 @@
             background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
         }
 
-        /* 分组容器 */
-        .source-groups {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .source-group {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 25px;
-        }
-
-        .source-group-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .source-group-icon {
-            font-size: 24px;
-        }
-
-        .source-group-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 13px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .source-group.crawler .source-group-title {
-            color: var(--neon-green);
-        }
-
-        .source-group.rss .source-group-title {
-            color: var(--neon-blue);
-        }
-
-        .source-group-count {
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-left: auto;
-        }
-
         .source-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
-            justify-content: flex-start;
-        }
-
-        .all-filter {
-            display: flex;
             justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .tag-icon {
-            font-size: 12px;
-            margin-right: 2px;
         }
 
         .source-tag {
@@ -976,7 +916,7 @@
                 <span class="separator"></span>
                 <span class="date">2026-01-10</span>
                 <span class="separator"></span>
-                <span>14-10 更新</span>
+                <span>13-53 更新</span>
                 <span class="separator"></span>
             </div>
         </header>
@@ -1008,150 +948,104 @@
         <!-- 来源标签 -->
         <div class="source-section">
             <div class="section-title">DATA SOURCES</div>
-
-            <!-- 全部按钮 -->
-            <div class="all-filter">
-                <div class="source-tags">
-                    
+            <div class="source-tags">
+                
             <div class="source-tag active" data-filter="all" style="--tag-color: #ffffff">
                 <span class="tag-dot"></span>
                 全部
                 <span class="tag-count">444</span>
             </div>
     
-                </div>
-            </div>
-
-            <!-- 分组显示 -->
-            <div class="source-groups">
-                <!-- 爬虫源 -->
-                <div class="source-group crawler">
-                    <div class="source-group-header">
-                        <span class="source-group-icon">🤖</span>
-                        <span class="source-group-title">Web3 Crawler</span>
-                        <span class="source-group-count">1 源 / 45 条</span>
-                    </div>
-                    <div class="source-tags">
-                        
-            <div class="source-tag crawler-tag" data-filter="ChainCatcher 链捕手" style="--tag-color: #06ffa5">
+            <div class="source-tag" data-filter="U.Today" style="--tag-color: #00d4ff">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">🤖</span>
-                ChainCatcher 链捕手
-                <span class="tag-count">45</span>
-            </div>
-        
-                    </div>
-                </div>
-
-                <!-- RSS 源 -->
-                <div class="source-group rss">
-                    <div class="source-group-header">
-                        <span class="source-group-icon">📡</span>
-                        <span class="source-group-title">RSS Feed</span>
-                        <span class="source-group-count">14 源 / 399 条</span>
-                    </div>
-                    <div class="source-tags">
-                        
-            <div class="source-tag rss-tag" data-filter="U.Today" style="--tag-color: #00d4ff">
-                <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 U.Today
                 <span class="tag-count">93</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Decrypt" style="--tag-color: #ff006e">
+            <div class="source-tag" data-filter="Decrypt" style="--tag-color: #ff006e">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Decrypt
                 <span class="tag-count">54</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Blockworks" style="--tag-color: #8338ec">
+            <div class="source-tag" data-filter="Blockworks" style="--tag-color: #8338ec">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Blockworks
                 <span class="tag-count">50</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CryptoPotato" style="--tag-color: #ffbe0b">
+            <div class="source-tag" data-filter="ChainCatcher 链捕手" style="--tag-color: #ffbe0b">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
+                ChainCatcher 链捕手
+                <span class="tag-count">45</span>
+            </div>
+        
+            <div class="source-tag" data-filter="CryptoPotato" style="--tag-color: #06ffa5">
+                <span class="tag-dot"></span>
                 CryptoPotato
                 <span class="tag-count">36</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Cointelegraph" style="--tag-color: #ff5400">
+            <div class="source-tag" data-filter="Cointelegraph" style="--tag-color: #ff5400">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Cointelegraph
                 <span class="tag-count">30</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinDesk" style="--tag-color: #f72585">
+            <div class="source-tag" data-filter="CoinDesk" style="--tag-color: #00f5d4">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinDesk
                 <span class="tag-count">25</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinGape" style="--tag-color: #00b4d8">
+            <div class="source-tag" data-filter="CoinGape" style="--tag-color: #f72585">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinGape
                 <span class="tag-count">20</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="深潮 TechFlow" style="--tag-color: #e056fd">
+            <div class="source-tag" data-filter="深潮 TechFlow" style="--tag-color: #00d4ff">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 深潮 TechFlow
                 <span class="tag-count">20</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="The Block" style="--tag-color: #00d4ff">
+            <div class="source-tag" data-filter="The Block" style="--tag-color: #ff006e">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 The Block
                 <span class="tag-count">19</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="BeInCrypto" style="--tag-color: #ff006e">
+            <div class="source-tag" data-filter="BeInCrypto" style="--tag-color: #8338ec">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 BeInCrypto
                 <span class="tag-count">12</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinPedia" style="--tag-color: #8338ec">
+            <div class="source-tag" data-filter="CoinPedia" style="--tag-color: #ffbe0b">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinPedia
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="NewsBTC" style="--tag-color: #ffbe0b">
+            <div class="source-tag" data-filter="NewsBTC" style="--tag-color: #06ffa5">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 NewsBTC
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Bitcoin Magazine" style="--tag-color: #ff5400">
+            <div class="source-tag" data-filter="Bitcoin Magazine" style="--tag-color: #ff5400">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Bitcoin Magazine
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CryptoSlate" style="--tag-color: #f72585">
+            <div class="source-tag" data-filter="CryptoSlate" style="--tag-color: #00f5d4">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CryptoSlate
                 <span class="tag-count">10</span>
             </div>
         
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -1176,21 +1070,6 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.05s">
                 <div class="news-rank top-3">1</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236262" target="_blank">
-                        Bitdeer 本周出售 137.9 枚 BTC，比特币总持仓量降至 1,990.9 枚
-                        <span class="link-icon">↗</span>
-                    </a>
-                    <div class="news-meta">
-                        <span class="source-badge">ChainCatcher 链捕手</span>
-                        <span class="time-badge">🕐 2026-01-10T14:02</span>
-                    </div>
-                </div>
-                <div class="news-glow"></div>
-            </div>
-        
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.1s">
-                <div class="news-rank top-3">2</div>
-                <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236261" target="_blank">
                         数据：271 万枚 USD1 从 World Liberty Fi 转入 Jump Crypto，价值约 271 万美元
                         <span class="link-icon">↗</span>
@@ -1203,8 +1082,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.15000000000000002s">
-                <div class="news-rank top-3">3</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.1s">
+                <div class="news-rank top-3">2</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236260" target="_blank">
                         Tim Beiko：将担任以太坊协议顾问，从一级研发转向前沿应用场景探索
@@ -1218,8 +1097,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.2s">
-                <div class="news-rank ">4</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.15000000000000002s">
+                <div class="news-rank top-3">3</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236259" target="_blank">
                         方正证券：市场预期美联储 1 月不降息，最早 6 月降息
@@ -1233,11 +1112,11 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.25s">
-                <div class="news-rank ">5</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.2s">
+                <div class="news-rank ">4</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236258" target="_blank">
-                        数据：以太坊现货 ETF 昨日净流出 9381.51 万美元，持续 3 日净流出
+                        昨日美国以太坊现货 ETF 净流出 9380 万美元
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -1248,8 +1127,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.30000000000000004s">
-                <div class="news-rank ">6</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.25s">
+                <div class="news-rank ">5</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236257" target="_blank">
                         某巨鲸向 HyperLiquid 存入 100 万 USDC 增持 HYPE 代币
@@ -1263,8 +1142,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.35000000000000003s">
-                <div class="news-rank ">7</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.30000000000000004s">
+                <div class="news-rank ">6</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236256" target="_blank">
                         某巨鲸向 Hyperliquid 存入 1,206 万美元 USDC 并买入 480,997 枚 HYPE
@@ -1278,23 +1157,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.4s">
-                <div class="news-rank ">8</div>
-                <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236255" target="_blank">
-                        数据：比特币现货 ETF 昨日净流出 2.5 亿美元，持续 4 日净流出
-                        <span class="link-icon">↗</span>
-                    </a>
-                    <div class="news-meta">
-                        <span class="source-badge">ChainCatcher 链捕手</span>
-                        <span class="time-badge">🕐 2026-01-10T12:53</span>
-                    </div>
-                </div>
-                <div class="news-glow"></div>
-            </div>
-        
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.45s">
-                <div class="news-rank ">9</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.35000000000000003s">
+                <div class="news-rank ">7</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236254" target="_blank">
                         BSC Meme 币“川普”短时暴涨超 560 倍，市值一度触及 500 万美元
@@ -1308,8 +1172,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.5s">
-                <div class="news-rank ">10</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.4s">
+                <div class="news-rank ">8</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236253" target="_blank">
                         数据：当前加密恐慌贪婪指数为 26，处于恐慌状态
@@ -1323,8 +1187,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.55s">
-                <div class="news-rank ">11</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.45s">
+                <div class="news-rank ">9</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236252" target="_blank">
                         某鲸鱼地址开启 3627 万美元 BTC 多单，并做空等价值的 ETH、SOL 和 AVAX
@@ -1338,8 +1202,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.6000000000000001s">
-                <div class="news-rank ">12</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.5s">
+                <div class="news-rank ">10</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236251" target="_blank">
                         数据：若 ETH 跌破 2,939 美元，主流 CEX 累计多单清算强度将达 11.82 亿美元
@@ -1353,8 +1217,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.65s">
-                <div class="news-rank ">13</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.55s">
+                <div class="news-rank ">11</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236250" target="_blank">
                         数据：若 BTC 跌破 86,180 美元，主流 CEX 累计多单清算强度将达 14.51 亿美元
@@ -1368,8 +1232,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.7000000000000001s">
-                <div class="news-rank ">14</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.6000000000000001s">
+                <div class="news-rank ">12</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236249" target="_blank">
                         数据：8 万枚 SOL 从 Binance 转出，价值约 1087 万美元
@@ -1383,8 +1247,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.75s">
-                <div class="news-rank ">15</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.65s">
+                <div class="news-rank ">13</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236246" target="_blank">
                         高盛：美国加密市场结构法案或成机构加速入场关键催化剂
@@ -1398,8 +1262,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8s">
-                <div class="news-rank ">16</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.7000000000000001s">
+                <div class="news-rank ">14</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236245" target="_blank">
                         数据：ACA 24 小时跌超 13%，POLYX 涨超 5%
@@ -1413,8 +1277,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8500000000000001s">
-                <div class="news-rank ">17</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.75s">
+                <div class="news-rank ">15</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236244" target="_blank">
                         数据：107.91 枚 BTC 从匿名地址转出，经中转后流入 Binance
@@ -1428,8 +1292,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9s">
-                <div class="news-rank ">18</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8s">
+                <div class="news-rank ">16</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236243" target="_blank">
                         数据：496.31 枚 BTC 从匿名地址转出，价值约 4493 万美元
@@ -1443,8 +1307,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9500000000000001s">
-                <div class="news-rank ">19</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8500000000000001s">
+                <div class="news-rank ">17</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236242" target="_blank">
                         法国发生一起加密货币抢劫案，三名男子持枪闯入民宅抢走加密 U 盘
@@ -1458,8 +1322,8 @@
                 <div class="news-glow"></div>
             </div>
         
-            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.0s">
-                <div class="news-rank ">20</div>
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9s">
+                <div class="news-rank ">18</div>
                 <div class="news-content">
                     <a class="news-title" href="https://www.chaincatcher.com/article/2236241" target="_blank">
                         数据：263.01 枚 BTC 从 Coinbase 转出，价值约 2380 万美元
@@ -1468,6 +1332,36 @@
                     <div class="news-meta">
                         <span class="source-badge">ChainCatcher 链捕手</span>
                         <span class="time-badge">🕐 2026-01-10T11:10</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9500000000000001s">
+                <div class="news-rank ">19</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236240" target="_blank">
+                        XRP 现货 ETF 已累计吸纳超 10 亿美元资金，部分机构投资者仍不看好并将其视为 Meme 币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:07</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.0s">
+                <div class="news-rank ">20</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236239" target="_blank">
+                        某加密倡导组织在 Fox 新闻黄金时段投放广告反对加密结构法案 DeFi 条款
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:04</span>
                     </div>
                 </div>
                 <div class="news-glow"></div>
@@ -7476,8 +7370,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.05s">
                 <div class="news-rank ">421</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236262" target="_blank">
-                        Bitdeer 本周出售 137.9 枚 BTC，比特币总持仓量降至 1,990.9 枚  01-10 14:02 ChainCatcher 消息，纳斯达克上市的比特币矿企 Bitdeer 在 X 平台发布比特币持仓最新数据，比特币总持仓量降至 1,990.9 枚，本周其挖矿产出为 137.7 枚 BTC，但同期出售 137.9 枚 BTC，比特币总持仓量净减少约 99.1 枚。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236261" target="_blank">
+                        数据：271 万枚 USD1 从 World Liberty Fi 转入 Jump Crypto，价值约 271 万美元  01-10 13:32 ChainCatcher 消息，据 Arkham 数据，在 13:28，271 万枚 USD1（价值约 271 万美元）从 World Liberty Fi 转入 Jump Crypto。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7491,8 +7385,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.1s">
                 <div class="news-rank ">422</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236261" target="_blank">
-                        数据：271 万枚 USD1 从 World Liberty Fi 转入 Jump Crypto，价值约 271 万美元  01-10 13:32 ChainCatcher 消息，据 Arkham 数据，在 13:28，271 万枚 USD1（价值约 271 万美元）从 World Liberty Fi 转入 Jump Crypto。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236260" target="_blank">
+                        Tim Beiko：将担任以太坊协议顾问，从一级研发转向前沿应用场景探索  01-10 13:23 ChainCatcher 消息，以太坊核心开发者 Tim Beiko 称，他将在接下来的几个月里，将工作重心从一级研发转向探索以太坊的前沿应用场景。确保 AllCoreDevs 的平稳过渡和自己在以太坊基金会的职责是他当前的首要短期目标。他将继续留在以太坊基金会，并担任协议顾问，与基金会及集群领导层共同确保构建合理的组织结构，以支持各种生态系统的参与。Tim Beiko 强调，以太坊协议已接近最终阶段，但大家仅仅开始触及无许可、可扩展、经济安全且低成本可验证的世界计算机所能实现的潜力。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7506,8 +7400,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.15000000000000002s">
                 <div class="news-rank ">423</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236260" target="_blank">
-                        Tim Beiko：将担任以太坊协议顾问，从一级研发转向前沿应用场景探索  01-10 13:23 ChainCatcher 消息，以太坊核心开发者 Tim Beiko 称，他将在接下来的几个月里，将工作重心从一级研发转向探索以太坊的前沿应用场景。确保 AllCoreDevs 的平稳过渡和自己在以太坊基金会的职责是他当前的首要短期目标。他将继续留在以太坊基金会，并担任协议顾问，与基金会及集群领导层共同确保构建合理的组织结构，以支持各种生态系统的参与。Tim Beiko 强调，以太坊协议已接近最终阶段，但大家仅仅开始触及无许可、可扩展、经济安全且低成本可验证的世界计算机所能实现的潜力。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236259" target="_blank">
+                        方正证券：市场预期美联储 1 月不降息，最早 6 月降息  01-10 13:22 ChainCatcher 消息，据金十报道，方正证券研报称，12 月非农数据好坏参半，美国就业市场整体处于温和下行趋势，但失业率边际改善，给 1 月美联储更多观望的理由。市场定价美联储 1 月不降息，最早或在 6 月开启降息。由于最高法或宣布 IEEPA 关税违宪，经济预期或边际改善，通胀压力走弱，短期美债面临不利因素，美股受益于 AI 景气度和关税扰动减少。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7521,8 +7415,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.2s">
                 <div class="news-rank ">424</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236259" target="_blank">
-                        方正证券：市场预期美联储 1 月不降息，最早 6 月降息  01-10 13:22 ChainCatcher 消息，据金十报道，方正证券研报称，12 月非农数据好坏参半，美国就业市场整体处于温和下行趋势，但失业率边际改善，给 1 月美联储更多观望的理由。市场定价美联储 1 月不降息，最早或在 6 月开启降息。由于最高法或宣布 IEEPA 关税违宪，经济预期或边际改善，通胀压力走弱，短期美债面临不利因素，美股受益于 AI 景气度和关税扰动减少。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236258" target="_blank">
+                        昨日美国以太坊现货 ETF 净流出 9380 万美元  01-10 12:59 ChainCatcher 消息，据 Farside Investors 监测，美国以太坊现货 ETF 净流出 9,380 万美元，其中：贝莱德 ETHA: - 8,380 万美元，灰度 ETHE: - 1,000 万美元。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7536,8 +7430,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.25s">
                 <div class="news-rank ">425</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236258" target="_blank">
-                        数据：以太坊现货 ETF 昨日净流出 9381.51 万美元，持续 3 日净流出  01-10 12:59 ChainCatcher 消息，根据 SoSoValue 数据，昨日（美东时间 1 月 9 日）以太坊现货 ETF 总净流出 9381.51 万美元。 昨日单日净流出最多的以太坊现货 ETF 为贝莱德（Blackrock） ETF ETHA，单日净流出为 8377.83 万美元，目前 ETHA 历史总净流入达 127.18 亿美元。 其次为灰度（Grayscale）以太坊信托 ETF ETHE，单日净流出为 1003.68 万美元，目前 ETHE 历史总净流出达 51.41 亿美元。 截至发稿前，以太坊现货 ETF 总资产净值为 186.99 亿美元，ETF 净资产比率（市值较以太坊总市值占比）达 5.04%，历史累计净流入已达 124.34 亿美元。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236257" target="_blank">
+                        某巨鲸向 HyperLiquid 存入 100 万 USDC 增持 HYPE 代币  01-10 12:58 ChainCatcher 消息，据 Onchain Lens 监测，一位巨鲸向 HyperLiquid 存入 100 万 USDC，以增持其持有的 HYPE 代币。自 2025 年 12 月 17 日以来，这位巨鲸已向 HyperLiquid 存入 1206 万 USDC，并以每枚 25.07 美元的价格买入了 480,997 枚 HYPE 代币。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7551,8 +7445,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.30000000000000004s">
                 <div class="news-rank ">426</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236257" target="_blank">
-                        某巨鲸向 HyperLiquid 存入 100 万 USDC 增持 HYPE 代币  01-10 12:58 ChainCatcher 消息，据 Onchain Lens 监测，一位巨鲸向 HyperLiquid 存入 100 万 USDC，以增持其持有的 HYPE 代币。自 2025 年 12 月 17 日以来，这位巨鲸已向 HyperLiquid 存入 1206 万 USDC，并以每枚 25.07 美元的价格买入了 480,997 枚 HYPE 代币。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236256" target="_blank">
+                        某巨鲸向 Hyperliquid 存入 1,206 万美元 USDC 并买入 480,997 枚 HYPE  01-10 12:55 ChainCatcher 消息，据 Onchain Lens 监测，某巨鲸 (0x23Af...E2C0) 向 Hyperliquid 存入 1,000,000 美元 USDC 以增加 HYPE 持仓。自 2025 年 12 月 17 日以来，该巨鲸已累计向 Hyperliquid 存入 12,060,000 美元 USDC，并以 25.07 美元的价格买入 480,997 枚 HYPE。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7566,8 +7460,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.35000000000000003s">
                 <div class="news-rank ">427</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236256" target="_blank">
-                        某巨鲸向 Hyperliquid 存入 1,206 万美元 USDC 并买入 480,997 枚 HYPE  01-10 12:55 ChainCatcher 消息，据 Onchain Lens 监测，某巨鲸 (0x23Af...E2C0) 向 Hyperliquid 存入 1,000,000 美元 USDC 以增加 HYPE 持仓。自 2025 年 12 月 17 日以来，该巨鲸已累计向 Hyperliquid 存入 12,060,000 美元 USDC，并以 25.07 美元的价格买入 480,997 枚 HYPE。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236254" target="_blank">
+                        BSC Meme 币“川普”短时暴涨超 560 倍，市值一度触及 500 万美元  01-10 12:30 ChainCatcher 消息，据 GMGN 数据，BSC 上 Meme 币“川普”短时拉升超 560 倍，市值最高触及约 500 万美元，现报约 430 万美元。Meme 币价格波动较大，投资者请注意风险。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7581,8 +7475,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.4s">
                 <div class="news-rank ">428</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236255" target="_blank">
-                        数据：比特币现货 ETF 昨日净流出 2.5 亿美元，持续 4 日净流出  01-10 12:53 ChainCatcher 消息，根据 SoSoValue 数据，昨日（美东时间 1 月 9 日）比特币现货 ETF 总净流出 2.50 亿美元。 昨日单日净流入最多的比特币现货 ETF 为富达 (Fidelity） ETF FBTC，单日净流入为 786.55 万美元，目前 FBTC 历史总净流入达 117.22 亿美元。 昨日单日净流出最多的比特币现货 ETF 为贝莱德 (Blackrock） ETF IBIT，单日净流出为 2.52 亿美元，目前 IBIT 历史总净流入达 624.06 亿美元。 截至发稿前，比特币现货 ETF 总资产净值为 1168.57 亿美元，ETF 净资产比率（市值较比特币总市值占比）达 6.48%，历史累计净流入已达 564.03 亿美元。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236253" target="_blank">
+                        数据：当前加密恐慌贪婪指数为 26，处于恐慌状态  01-10 12:30 ChainCatcher 消息，据 Coinglass 数据显示，加密货币恐慌贪婪指数当前为 26，较昨日上涨 0 点。过去 7 天平均值为 31，过去 30 天平均值为 24。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7596,8 +7490,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.45s">
                 <div class="news-rank ">429</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236254" target="_blank">
-                        BSC Meme 币“川普”短时暴涨超 560 倍，市值一度触及 500 万美元  01-10 12:30 ChainCatcher 消息，据 GMGN 数据，BSC 上 Meme 币“川普”短时拉升超 560 倍，市值最高触及约 500 万美元，现报约 430 万美元。Meme 币价格波动较大，投资者请注意风险。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236252" target="_blank">
+                        某鲸鱼地址开启 3627 万美元 BTC 多单，并做空等价值的 ETH、SOL 和 AVAX  01-10 12:03 ChainCatcher 消息，据链上分析师 Ai 姨（@ai_9684xtpa）监测，地址 0x61C…2A62B 过去 6 小时向 Hyperliquid 充值 510.6 万美元，随后开启 3627 万美元的 BTC 多单和 3687 万美元的 ETH / SOL / AVAX 空单；多空价值基本对等，整体仓位规模达 7315 万美元。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7611,8 +7505,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.5s">
                 <div class="news-rank ">430</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236253" target="_blank">
-                        数据：当前加密恐慌贪婪指数为 26，处于恐慌状态  01-10 12:30 ChainCatcher 消息，据 Coinglass 数据显示，加密货币恐慌贪婪指数当前为 26，较昨日上涨 0 点。过去 7 天平均值为 31，过去 30 天平均值为 24。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236251" target="_blank">
+                        数据：若 ETH 跌破 2,939 美元，主流 CEX 累计多单清算强度将达 11.82 亿美元  01-10 12:00 ChainCatcher 消息，据 Coinglass 数据显示，若 ETH 跌破 2,939 美元，主流 CEX 累计多单清算强度将达 11.82 亿美元。反之，若 ETH 突破 3,236 美元，主流 CEX 累计空单清算强度将达 11.75 亿美元。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7626,8 +7520,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.55s">
                 <div class="news-rank ">431</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236252" target="_blank">
-                        某鲸鱼地址开启 3627 万美元 BTC 多单，并做空等价值的 ETH、SOL 和 AVAX  01-10 12:03 ChainCatcher 消息，据链上分析师 Ai 姨（@ai_9684xtpa）监测，地址 0x61C…2A62B 过去 6 小时向 Hyperliquid 充值 510.6 万美元，随后开启 3627 万美元的 BTC 多单和 3687 万美元的 ETH / SOL / AVAX 空单；多空价值基本对等，整体仓位规模达 7315 万美元。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236250" target="_blank">
+                        数据：若 BTC 跌破 86,180 美元，主流 CEX 累计多单清算强度将达 14.51 亿美元  01-10 12:00 ChainCatcher 消息，据 Coinglass 数据显示，若 BTC 跌破 86,180 美元，主流 CEX 累计多单清算强度将达 14.51 亿美元。反之，若 BTC 突破 95,108 美元，主流 CEX 累计空单清算强度将达 12.13 亿美元。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7641,8 +7535,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.6000000000000001s">
                 <div class="news-rank ">432</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236251" target="_blank">
-                        数据：若 ETH 跌破 2,939 美元，主流 CEX 累计多单清算强度将达 11.82 亿美元  01-10 12:00 ChainCatcher 消息，据 Coinglass 数据显示，若 ETH 跌破 2,939 美元，主流 CEX 累计多单清算强度将达 11.82 亿美元。反之，若 ETH 突破 3,236 美元，主流 CEX 累计空单清算强度将达 11.75 亿美元。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236249" target="_blank">
+                        数据：8 万枚 SOL 从 Binance 转出，价值约 1087 万美元  01-10 12:00 ChainCatcher 消息，据 Arkham 数据，在 11:53，8 万枚 SOL（价值约 1087 万美元）从 Binance 转出至一匿名地址（7Z4KKD...开头）。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7656,8 +7550,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.65s">
                 <div class="news-rank ">433</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236250" target="_blank">
-                        数据：若 BTC 跌破 86,180 美元，主流 CEX 累计多单清算强度将达 14.51 亿美元  01-10 12:00 ChainCatcher 消息，据 Coinglass 数据显示，若 BTC 跌破 86,180 美元，主流 CEX 累计多单清算强度将达 14.51 亿美元。反之，若 BTC 突破 95,108 美元，主流 CEX 累计空单清算强度将达 12.13 亿美元。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236246" target="_blank">
+                        高盛：美国加密市场结构法案或成机构加速入场关键催化剂  01-10 11:30 ChainCatcher 消息，高盛分析师 James Yaro 等人在一份报告中表示，监管环境的持续改善正成为推动机构进一步采用加密资产的关键因素，尤其有利于买方与卖方金融机构，同时也将推动加密资产在交易之外的新应用场景发展。分析师指出，当前正在国会推进的美国加密市场结构法案《Clarity Act》是重要催化剂。报告认为，该法案将明确代币化资产与去中心化金融（DeFi）的监管框架，并清晰划分美国证券交易委员会（SEC）与商品期货交易委员会（CFTC）的监管职责，这是释放机构资本、推动合规参与的必要前提。高盛同时提醒，该法案需在 2026 年上半年通过，否则美国 11 月中期选举可能对立法进程造成拖延。此前，共和党参议院银行委员会主席 Tim Scott 表示，相关委员会将于近期对《Clarity Act》进行修订并进入表决阶段。业内人士亦指出，尽管 2025 年末市场调整可能令短期采用放缓，但若法案顺利落地，或将显著加速真正意义上的机构入场。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7671,8 +7565,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.7000000000000001s">
                 <div class="news-rank ">434</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236249" target="_blank">
-                        数据：8 万枚 SOL 从 Binance 转出，价值约 1087 万美元  01-10 12:00 ChainCatcher 消息，据 Arkham 数据，在 11:53，8 万枚 SOL（价值约 1087 万美元）从 Binance 转出至一匿名地址（7Z4KKD...开头）。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236245" target="_blank">
+                        数据：ACA 24 小时跌超 13%，POLYX 涨超 5%  01-10 11:30 ChainCatcher 消息，据币安现货数据显示，市场出现大幅波动。ACA 24 小时跌幅达 13.64%，POLYX 24 小时涨幅 5.88%，并触及今日新高。同时，GLM 也触及今日新高，涨幅为 5.3%。其余代币中，JASMY 出现今日新低，跌幅 5.47%；API3 和 SKY 均触及本周新低，跌幅分别为 5.2% 和 10.3%；0G 同样触及本周新低，跌幅 11.82%；ZEN 也出现今日新低，跌幅 8.85%。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7686,8 +7580,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.75s">
                 <div class="news-rank ">435</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236246" target="_blank">
-                        高盛：美国加密市场结构法案或成机构加速入场关键催化剂  01-10 11:30 ChainCatcher 消息，高盛分析师 James Yaro 等人在一份报告中表示，监管环境的持续改善正成为推动机构进一步采用加密资产的关键因素，尤其有利于买方与卖方金融机构，同时也将推动加密资产在交易之外的新应用场景发展。分析师指出，当前正在国会推进的美国加密市场结构法案《Clarity Act》是重要催化剂。报告认为，该法案将明确代币化资产与去中心化金融（DeFi）的监管框架，并清晰划分美国证券交易委员会（SEC）与商品期货交易委员会（CFTC）的监管职责，这是释放机构资本、推动合规参与的必要前提。高盛同时提醒，该法案需在 2026 年上半年通过，否则美国 11 月中期选举可能对立法进程造成拖延。此前，共和党参议院银行委员会主席 Tim Scott 表示，相关委员会将于近期对《Clarity Act》进行修订并进入表决阶段。业内人士亦指出，尽管 2025 年末市场调整可能令短期采用放缓，但若法案顺利落地，或将显著加速真正意义上的机构入场。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236244" target="_blank">
+                        数据：107.91 枚 BTC 从匿名地址转出，经中转后流入 Binance  01-10 11:30 ChainCatcher 消息，据 Arkham 数据，在 11:26，107.91 枚 BTC（价值约 1002.95 万美元）从一匿名地址（3HqD7...开头）转出至另一匿名地址（36TUw...开头）。随后，该地址将 3 枚 BTC 转移至 Binance。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7701,8 +7595,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8s">
                 <div class="news-rank ">436</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236245" target="_blank">
-                        数据：ACA 24 小时跌超 13%，POLYX 涨超 5%  01-10 11:30 ChainCatcher 消息，据币安现货数据显示，市场出现大幅波动。ACA 24 小时跌幅达 13.64%，POLYX 24 小时涨幅 5.88%，并触及今日新高。同时，GLM 也触及今日新高，涨幅为 5.3%。其余代币中，JASMY 出现今日新低，跌幅 5.47%；API3 和 SKY 均触及本周新低，跌幅分别为 5.2% 和 10.3%；0G 同样触及本周新低，跌幅 11.82%；ZEN 也出现今日新低，跌幅 8.85%。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236243" target="_blank">
+                        数据：496.31 枚 BTC 从匿名地址转出，价值约 4493 万美元  01-10 11:20 ChainCatcher 消息，据 Arkham 数据，在 11:11，496.31 枚 BTC（价值约 4493 万美元）从一匿名地址（1DCpWKHC...开头）转出至多个地址，其中包括 WhiteBIT 和 Roobet。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7716,8 +7610,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.8500000000000001s">
                 <div class="news-rank ">437</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236244" target="_blank">
-                        数据：107.91 枚 BTC 从匿名地址转出，经中转后流入 Binance  01-10 11:30 ChainCatcher 消息，据 Arkham 数据，在 11:26，107.91 枚 BTC（价值约 1002.95 万美元）从一匿名地址（3HqD7...开头）转出至另一匿名地址（36TUw...开头）。随后，该地址将 3 枚 BTC 转移至 Binance。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236242" target="_blank">
+                        法国发生一起加密货币抢劫案，三名男子持枪闯入民宅抢走加密 U 盘  01-10 11:18 ChainCatcher 消息，据 Decrypt 报道，三名蒙面男子闯入法国马诺斯克的一户民宅，持枪捆绑一名女子，并抢走了一个装有加密货币的 U 盘。受害者并未受伤，她在几分钟内自行挣脱并报警。目前，案件已立案调查，并交由当地刑事调查部门和国家警察区域分局负责。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7731,8 +7625,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9s">
                 <div class="news-rank ">438</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236243" target="_blank">
-                        数据：496.31 枚 BTC 从匿名地址转出，价值约 4493 万美元  01-10 11:20 ChainCatcher 消息，据 Arkham 数据，在 11:11，496.31 枚 BTC（价值约 4493 万美元）从一匿名地址（1DCpWKHC...开头）转出至多个地址，其中包括 WhiteBIT 和 Roobet。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236241" target="_blank">
+                        数据：263.01 枚 BTC 从 Coinbase 转出，价值约 2380 万美元  01-10 11:10 ChainCatcher 消息，据 Arkham 数据，在 11:00，263.01 枚 BTC（价值约 2380 万美元）从 Coinbase 转出至一匿名地址（1H8JE9TG...开头）。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7746,8 +7640,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.9500000000000001s">
                 <div class="news-rank ">439</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236242" target="_blank">
-                        法国发生一起加密货币抢劫案，三名男子持枪闯入民宅抢走加密 U 盘  01-10 11:18 ChainCatcher 消息，据 Decrypt 报道，三名蒙面男子闯入法国马诺斯克的一户民宅，持枪捆绑一名女子，并抢走了一个装有加密货币的 U 盘。受害者并未受伤，她在几分钟内自行挣脱并报警。目前，案件已立案调查，并交由当地刑事调查部门和国家警察区域分局负责。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236240" target="_blank">
+                        XRP 现货 ETF 已累计吸纳超 10 亿美元资金，部分机构投资者仍不看好并将其视为 Meme 币  01-10 11:07 ChainCatcher 消息，自 2025 年上市以来，XRP 现货 ETF 已吸纳超 10 亿美元资金，然而部分分析师预测这波热潮恐难持续。投资平台 Glider 联合创始人 Brian Huang 表示：“投资的核心在于增长潜力以及有哪些建设者在该区块链上开发，当我们审视 a16z 投资版图中的建设者关注度时，XRP 甚至未能上榜。”Huang 的质疑源于 XRP 生态建设者的匮乏。“建设者创造的基础设施和应用程序能推动生态系统发展，提升底层代币价值，”Huang 解释称，“若无建设者，XRP 的增长将极其有限。多数大型机构甚至不将 Ripple 关联的 XRP 视作严肃项目。持有绝大部分加密 ETF 的机构投资者可能不愿持有 XRP，他们将其视为 Meme 币。”
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7761,8 +7655,8 @@
             <div class="news-item" data-source="ChainCatcher 链捕手" style="animation-delay: 0.0s">
                 <div class="news-rank ">440</div>
                 <div class="news-content">
-                    <a class="news-title" href="https://www.chaincatcher.com/article/2236241" target="_blank">
-                        数据：263.01 枚 BTC 从 Coinbase 转出，价值约 2380 万美元  01-10 11:10 ChainCatcher 消息，据 Arkham 数据，在 11:00，263.01 枚 BTC（价值约 2380 万美元）从 Coinbase 转出至一匿名地址（1H8JE9TG...开头）。
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236239" target="_blank">
+                        某加密倡导组织在 Fox 新闻黄金时段投放广告反对加密结构法案 DeFi 条款  01-10 11:04 ChainCatcher 消息，加密记者 Eleanor Terrett 在 X 平台发文表示，一个新出现的加密倡导组织“投资者透明度联盟（ Investors For Transparency ）”在 Fox 新闻黄金时段投放广告，呼吁大众反对即将出台的加密市场结构法案中关于去中心化金融（ DeFi ）的条款，该法案将于下周进行投票表决，其中 DeFi 条款一直是最具争议的部分之一，在立法者、传统金融（ TradFi ）以及加密货币行业内部都引发激烈争论。值得关注的是，UniSwap 创始人 Hayden Adams 披露该加密倡导组织的资金来源和支持者信息似乎非常“神秘”，目前尚未公开披露。
                         <span class="link-icon">↗</span>
                     </a>
                     <div class="news-meta">
@@ -7841,7 +7735,7 @@
             <div class="footer-logo">VOIVERSE</div>
             <div class="footer-line"></div>
             <div class="footer-text">Web3 Intelligence System</div>
-            <div class="footer-time">Generated: 2026-01-10 14:10:18</div>
+            <div class="footer-time">Generated: 2026-01-10 13:53:49</div>
         </footer>
     </div>
 

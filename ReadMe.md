@@ -6,6 +6,16 @@
 
 ## ⚡ 快速启动
 
+### 🎨 Web3 赛博朋克版（推荐）
+
+进入 `deploy` 文件夹，双击运行：
+- **Windows**: `启动Web3赛博朋克版.bat`
+- **Linux/Mac**: `启动Web3赛博朋克版.sh`
+
+启动后访问：http://localhost:8080/
+
+### 📦 传统部署方式
+
 **Windows 用户：** 双击运行 `run.bat`
 
 **Mac/Linux 用户：** 运行 `./run.sh`
@@ -18,7 +28,7 @@ pip install -r requirements.txt       # 首次运行需安装依赖
 python run_web3_push.py --dry-run     # 预览推送内容
 ```
 
-📖 详细说明请查看 [START.md](START.md) 或 [部署指南](deploy/README.md)
+📖 详细说明请查看 [START.md](START.md) 或 [部署中心](deploy/README.md)
 
 ---
 

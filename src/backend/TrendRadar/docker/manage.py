@@ -30,10 +30,10 @@ def run_command(cmd, shell=True, capture_output=True):
 
 def manual_run():
     """手动执行一次爬虫"""
-    print("🔄 手动执行爬虫...")
+    print("🔄 手动执行 Web3 爬虫...")
     try:
         result = subprocess.run(
-            ["python", "-m", "trendradar"], cwd="/app", capture_output=False, text=True
+            ["python", "run_web3_push.py"], cwd="/app", capture_output=False, text=True
         )
         if result.returncode == 0:
             print("✅ 执行完成")
@@ -478,12 +478,60 @@ def start_webserver():
         return
 
     try:
-        # 启动 HTTP 服务器
-        # 使用 --bind 绑定到 0.0.0.0 使容器内部可访问
-        # 工作目录限制在 WEBSERVER_DIR，防止访问其他目录
+        # 使用自定义服务器脚本处理根路径重定向
+        server_script = f"""
+import http.server
+import socketserver
+from pathlib import Path
+import os
+
+PORT = {WEBSERVER_PORT}
+DIR = r"{WEBSERVER_DIR}"
+
+class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=DIR, **kwargs)
+    
+    def end_headers(self):
+        # 添加 CORS 头
+        self.send_header('Access-Control-Allow-Origin', '*')
+        super().end_headers()
+    
+    def do_GET(self):
+        # 如果访问根路径，直接返回 index.html 的内容（不重定向，避免加载延迟）
+        if self.path == '/' or self.path == '':
+            index_path = Path(DIR) / 'index.html'
+            if index_path.exists():
+                # 直接读取并返回 index.html 的内容
+                try:
+                    with open(index_path, 'rb') as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Length', str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                except Exception as e:
+                    # 如果读取失败，回退到重定向
+                    pass
+        
+        # 其他请求使用默认处理
+        super().do_GET()
+
+with socketserver.TCPServer(("0.0.0.0", PORT), MyHTTPRequestHandler) as httpd:
+    print("服务器运行在 http://0.0.0.0:" + str(PORT) + "/")
+    httpd.serve_forever()
+"""
+        
+        # 将脚本写入临时文件
+        server_script_path = "/tmp/webserver.py"
+        with open(server_script_path, 'w', encoding='utf-8') as f:
+            f.write(server_script)
+        
+        # 启动自定义 HTTP 服务器
         process = subprocess.Popen(
-            [sys.executable, '-m', 'http.server', str(WEBSERVER_PORT), '--bind', '0.0.0.0'],
-            cwd=WEBSERVER_DIR,
+            [sys.executable, server_script_path],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             start_new_session=True
@@ -501,7 +549,7 @@ def start_webserver():
             print(f"  ✅ Web 服务器已启动 (PID: {process.pid})")
             print(f"  📁 服务目录: {WEBSERVER_DIR} (只读，仅静态文件)")
             print(f"  🌐 访问地址: http://localhost:{WEBSERVER_PORT}")
-            print(f"  📄 首页: http://localhost:{WEBSERVER_PORT}/index.html")
+            print(f"  📄 首页: http://localhost:{WEBSERVER_PORT}/ (自动跳转到 index.html)")
             print("  💡 停止服务: python manage.py stop_webserver")
         else:
             print(f"  ❌ Web 服务器启动失败")

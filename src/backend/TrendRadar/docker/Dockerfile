@@ -54,6 +54,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY docker/manage.py .
+COPY run_web3_push.py .
 COPY trendradar/ ./trendradar/
 
 # 复制 entrypoint.sh 并强制转换为 LF 格式
@@ -62,6 +63,7 @@ RUN sed -i 's/\r$//' /entrypoint.sh.tmp && \
     mv /entrypoint.sh.tmp /entrypoint.sh && \
     chmod +x /entrypoint.sh && \
     chmod +x manage.py && \
+    chmod +x run_web3_push.py && \
     mkdir -p /app/config /app/output
 
 ENV PYTHONUNBUFFERED=1 \

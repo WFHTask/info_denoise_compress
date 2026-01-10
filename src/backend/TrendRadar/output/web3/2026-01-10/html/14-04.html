@@ -381,71 +381,11 @@
             background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
         }
 
-        /* 分组容器 */
-        .source-groups {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .source-group {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 25px;
-        }
-
-        .source-group-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .source-group-icon {
-            font-size: 24px;
-        }
-
-        .source-group-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 13px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .source-group.crawler .source-group-title {
-            color: var(--neon-green);
-        }
-
-        .source-group.rss .source-group-title {
-            color: var(--neon-blue);
-        }
-
-        .source-group-count {
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-left: auto;
-        }
-
         .source-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
-            justify-content: flex-start;
-        }
-
-        .all-filter {
-            display: flex;
             justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .tag-icon {
-            font-size: 12px;
-            margin-right: 2px;
         }
 
         .source-tag {
@@ -976,7 +916,7 @@
                 <span class="separator"></span>
                 <span class="date">2026-01-10</span>
                 <span class="separator"></span>
-                <span>14-10 更新</span>
+                <span>14-04 更新</span>
                 <span class="separator"></span>
             </div>
         </header>
@@ -1008,150 +948,104 @@
         <!-- 来源标签 -->
         <div class="source-section">
             <div class="section-title">DATA SOURCES</div>
-
-            <!-- 全部按钮 -->
-            <div class="all-filter">
-                <div class="source-tags">
-                    
+            <div class="source-tags">
+                
             <div class="source-tag active" data-filter="all" style="--tag-color: #ffffff">
                 <span class="tag-dot"></span>
                 全部
                 <span class="tag-count">444</span>
             </div>
     
-                </div>
-            </div>
-
-            <!-- 分组显示 -->
-            <div class="source-groups">
-                <!-- 爬虫源 -->
-                <div class="source-group crawler">
-                    <div class="source-group-header">
-                        <span class="source-group-icon">🤖</span>
-                        <span class="source-group-title">Web3 Crawler</span>
-                        <span class="source-group-count">1 源 / 45 条</span>
-                    </div>
-                    <div class="source-tags">
-                        
-            <div class="source-tag crawler-tag" data-filter="ChainCatcher 链捕手" style="--tag-color: #06ffa5">
+            <div class="source-tag" data-filter="U.Today" style="--tag-color: #00d4ff">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">🤖</span>
-                ChainCatcher 链捕手
-                <span class="tag-count">45</span>
-            </div>
-        
-                    </div>
-                </div>
-
-                <!-- RSS 源 -->
-                <div class="source-group rss">
-                    <div class="source-group-header">
-                        <span class="source-group-icon">📡</span>
-                        <span class="source-group-title">RSS Feed</span>
-                        <span class="source-group-count">14 源 / 399 条</span>
-                    </div>
-                    <div class="source-tags">
-                        
-            <div class="source-tag rss-tag" data-filter="U.Today" style="--tag-color: #00d4ff">
-                <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 U.Today
                 <span class="tag-count">93</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Decrypt" style="--tag-color: #ff006e">
+            <div class="source-tag" data-filter="Decrypt" style="--tag-color: #ff006e">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Decrypt
                 <span class="tag-count">54</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Blockworks" style="--tag-color: #8338ec">
+            <div class="source-tag" data-filter="Blockworks" style="--tag-color: #8338ec">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Blockworks
                 <span class="tag-count">50</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CryptoPotato" style="--tag-color: #ffbe0b">
+            <div class="source-tag" data-filter="ChainCatcher 链捕手" style="--tag-color: #ffbe0b">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
+                ChainCatcher 链捕手
+                <span class="tag-count">45</span>
+            </div>
+        
+            <div class="source-tag" data-filter="CryptoPotato" style="--tag-color: #06ffa5">
+                <span class="tag-dot"></span>
                 CryptoPotato
                 <span class="tag-count">36</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Cointelegraph" style="--tag-color: #ff5400">
+            <div class="source-tag" data-filter="Cointelegraph" style="--tag-color: #ff5400">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Cointelegraph
                 <span class="tag-count">30</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinDesk" style="--tag-color: #f72585">
+            <div class="source-tag" data-filter="CoinDesk" style="--tag-color: #00f5d4">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinDesk
                 <span class="tag-count">25</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinGape" style="--tag-color: #00b4d8">
+            <div class="source-tag" data-filter="CoinGape" style="--tag-color: #f72585">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinGape
                 <span class="tag-count">20</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="深潮 TechFlow" style="--tag-color: #e056fd">
+            <div class="source-tag" data-filter="深潮 TechFlow" style="--tag-color: #00d4ff">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 深潮 TechFlow
                 <span class="tag-count">20</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="The Block" style="--tag-color: #00d4ff">
+            <div class="source-tag" data-filter="The Block" style="--tag-color: #ff006e">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 The Block
                 <span class="tag-count">19</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="BeInCrypto" style="--tag-color: #ff006e">
+            <div class="source-tag" data-filter="BeInCrypto" style="--tag-color: #8338ec">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 BeInCrypto
                 <span class="tag-count">12</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CoinPedia" style="--tag-color: #8338ec">
+            <div class="source-tag" data-filter="CoinPedia" style="--tag-color: #ffbe0b">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CoinPedia
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="NewsBTC" style="--tag-color: #ffbe0b">
+            <div class="source-tag" data-filter="NewsBTC" style="--tag-color: #06ffa5">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 NewsBTC
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="Bitcoin Magazine" style="--tag-color: #ff5400">
+            <div class="source-tag" data-filter="Bitcoin Magazine" style="--tag-color: #ff5400">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 Bitcoin Magazine
                 <span class="tag-count">10</span>
             </div>
         
-            <div class="source-tag rss-tag" data-filter="CryptoSlate" style="--tag-color: #f72585">
+            <div class="source-tag" data-filter="CryptoSlate" style="--tag-color: #00f5d4">
                 <span class="tag-dot"></span>
-                <span class="tag-icon">📡</span>
                 CryptoSlate
                 <span class="tag-count">10</span>
             </div>
         
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -7841,7 +7735,7 @@
             <div class="footer-logo">VOIVERSE</div>
             <div class="footer-line"></div>
             <div class="footer-text">Web3 Intelligence System</div>
-            <div class="footer-time">Generated: 2026-01-10 14:10:18</div>
+            <div class="footer-time">Generated: 2026-01-10 14:04:25</div>
         </footer>
     </div>
 

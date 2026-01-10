@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 Web3 资讯日报 - 2026-01-10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #8338ec;
+            --neon-pink: #ff006e;
+            --neon-green: #06ffa5;
+            --neon-yellow: #ffbe0b;
+            --dark-bg: #0a0a0f;
+            --card-bg: rgba(15, 15, 25, 0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            min-height: 100vh;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* ========== 粒子背景 Canvas ========== */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ========== 网格背景 ========== */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: top;
+            animation: gridScroll 15s linear infinite;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(60px); }
+        }
+
+        /* ========== 光晕球体 ========== */
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            z-index: 0;
+            animation: floatOrb 10s ease-in-out infinite;
+        }
+
+        .glow-orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--neon-blue);
+            top: -150px;
+            right: -150px;
+        }
+
+        .glow-orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--neon-purple);
+            bottom: -100px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+
+        .glow-orb-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--neon-pink);
+            top: 40%;
+            left: 60%;
+            animation-delay: -2.5s;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.95); }
+            75% { transform: translate(20px, 50px) scale(1.05); }
+        }
+
+        /* ========== 扫描线效果 ========== */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* ========== 主容器 ========== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== 超炫酷头部 ========== */
+        .header {
+            text-align: center;
+            padding: 60px 40px;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg,
+                rgba(0, 212, 255, 0.08) 0%,
+                rgba(131, 56, 236, 0.08) 50%,
+                rgba(255, 0, 110, 0.08) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 30px;
+            z-index: -1;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg,
+                var(--neon-blue),
+                var(--neon-purple),
+                var(--neon-pink),
+                var(--neon-green),
+                var(--neon-blue));
+            background-size: 400% 400%;
+            border-radius: 32px;
+            z-index: -2;
+            opacity: 0.5;
+            filter: blur(15px);
+            animation: borderGlow 4s ease infinite;
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; opacity: 0.5; }
+            50% { background-position: 100% 50%; opacity: 0.8; }
+            100% { background-position: 0% 50%; opacity: 0.5; }
+        }
+
+        /* 标题动画 */
+        .cyber-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 52px;
+            font-weight: 900;
+            background: linear-gradient(90deg,
+                var(--neon-blue),
+                var(--neon-purple),
+                var(--neon-pink),
+                var(--neon-blue));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease infinite;
+            margin-bottom: 15px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .cyber-title::after {
+            content: 'WEB3 DAILY';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg,
+                var(--neon-blue),
+                var(--neon-purple),
+                var(--neon-pink),
+                var(--neon-blue));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease infinite;
+            filter: blur(20px);
+            opacity: 0.6;
+            z-index: -1;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        .cyber-subtitle {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            color: var(--neon-green);
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            animation: flicker 3s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.3; }
+            94% { opacity: 1; }
+            95% { opacity: 0.5; }
+            96% { opacity: 1; }
+        }
+
+        .date-display {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .date-display .date {
+            color: var(--neon-blue);
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .date-display .separator {
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        }
+
+        /* ========== 统计卡片 - 3D 全息效果 ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 150%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: skewX(-20deg);
+            transition: left 0.7s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-15px) rotateX(10deg) rotateY(-5deg);
+            border-color: var(--neon-blue);
+            box-shadow:
+                0 30px 60px rgba(0, 212, 255, 0.3),
+                0 0 50px rgba(0, 212, 255, 0.1),
+                inset 0 0 50px rgba(0, 212, 255, 0.05);
+        }
+
+        .stat-card:hover::before {
+            left: 150%;
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        .stat-number::after {
+            content: attr(data-value);
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(180deg, #ffffff, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: blur(15px);
+            opacity: 0.5;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+        }
+
+        /* ========== 来源标签区域 ========== */
+        .source-section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            color: var(--neon-blue);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        }
+
+        .source-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .source-tag {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--tag-color);
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .source-tag::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--tag-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+            opacity: 0.1;
+        }
+
+        .source-tag:hover {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 30px var(--tag-color);
+        }
+
+        .source-tag:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .tag-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--tag-color);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--tag-color);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 15px var(--tag-color); }
+            50% { opacity: 0.6; transform: scale(1.3); box-shadow: 0 0 25px var(--tag-color); }
+        }
+
+        .tag-count {
+            background: var(--tag-color);
+            color: #000;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* ========== 新闻列表区域 ========== */
+        .news-section {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* LIVE 指示器 */
+        .live-indicator {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            color: var(--neon-green);
+            letter-spacing: 3px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--neon-green);
+            animation: livePulse 1.5s infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .news-header {
+            padding: 30px 35px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .news-header h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .header-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--neon-blue), transparent);
+        }
+
+        .news-list {
+            max-height: 900px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .news-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .news-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .news-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 4px;
+        }
+
+        .news-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 22px 35px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            position: relative;
+            transition: all 0.4s ease;
+            animation: slideInNews 0.6s ease forwards;
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        @keyframes slideInNews {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .news-item:hover {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.08), transparent);
+        }
+
+        .news-item:hover .news-glow {
+            opacity: 1;
+            height: 100%;
+        }
+
+        .news-glow {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+            opacity: 0;
+            transition: all 0.4s ease;
+            border-radius: 2px;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        .news-rank {
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .news-rank.top-3 {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            color: #fff;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(0, 212, 255, 0.8); }
+        }
+
+        .news-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .news-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            text-decoration: none;
+            line-height: 1.7;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .news-title:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .link-icon {
+            opacity: 0;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            color: var(--neon-blue);
+        }
+
+        .news-title:hover .link-icon {
+            opacity: 1;
+            transform: translate(5px, -5px);
+        }
+
+        .news-meta {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .source-badge {
+            font-size: 11px;
+            padding: 5px 14px;
+            background: rgba(131, 56, 236, 0.15);
+            border: 1px solid rgba(131, 56, 236, 0.25);
+            border-radius: 20px;
+            color: var(--neon-purple);
+            font-weight: 500;
+        }
+
+        .time-badge {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+        }
+
+        /* ========== 页脚 ========== */
+        .footer {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        .footer-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 3s ease infinite;
+            margin-bottom: 15px;
+        }
+
+        .footer-line {
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), var(--neon-purple), transparent);
+            margin: 20px auto;
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .footer-time {
+            margin-top: 15px;
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            color: var(--neon-blue);
+            opacity: 0.6;
+        }
+
+        /* ========== 响应式设计 ========== */
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cyber-title {
+                font-size: 28px;
+                letter-spacing: 3px;
+            }
+
+            .stat-number {
+                font-size: 32px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 20px 15px;
+            }
+
+            .news-item {
+                padding: 18px 20px;
+            }
+
+            .source-tags {
+                gap: 10px;
+            }
+
+            .source-tag {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+        }
+
+        /* ========== 加载动画 ========== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: all 0.8s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .loader-ring::before,
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+
+        .loader-ring::before {
+            border-top-color: var(--neon-blue);
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-ring::after {
+            border-bottom-color: var(--neon-pink);
+            animation: spin 1s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            color: var(--neon-blue);
+            letter-spacing: 5px;
+            margin-top: 30px;
+            animation: flicker 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-text">LOADING</div>
+    </div>
+
+    <!-- 背景特效 -->
+    <canvas id="particles-canvas"></canvas>
+    <div class="grid-bg"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+    <div class="scanline"></div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="cyber-subtitle">// BLOCKCHAIN INTELLIGENCE //</div>
+            <h1 class="cyber-title">WEB3 DAILY</h1>
+            <div class="date-display">
+                <span class="separator"></span>
+                <span class="date">2026-01-10</span>
+                <span class="separator"></span>
+                <span>11-21 更新</span>
+                <span class="separator"></span>
+            </div>
+        </header>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <div class="stat-number" data-value="75">75</div>
+                <div class="stat-label">Total News</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🌐</span>
+                <div class="stat-number" data-value="2">2</div>
+                <div class="stat-label">Data Sources</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🤖</span>
+                <div class="stat-number" data-value="45">45</div>
+                <div class="stat-label">Crawler</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📡</span>
+                <div class="stat-number" data-value="30">30</div>
+                <div class="stat-label">RSS Feed</div>
+            </div>
+        </div>
+
+        <!-- 来源标签 -->
+        <div class="source-section">
+            <div class="section-title">DATA SOURCES</div>
+            <div class="source-tags">
+                
+            <div class="source-tag" style="--tag-color: #00d4ff">
+                <span class="tag-dot"></span>
+                ChainCatcher 链捕手
+                <span class="tag-count">45</span>
+            </div>
+        
+            <div class="source-tag" style="--tag-color: #ff006e">
+                <span class="tag-dot"></span>
+                Cointelegraph
+                <span class="tag-count">30</span>
+            </div>
+        
+            </div>
+        </div>
+
+        <!-- 新闻列表 -->
+        <div class="news-section">
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                LIVE FEED
+            </div>
+            <div class="news-header">
+                <h2>📰 Latest News</h2>
+                <div class="header-line"></div>
+            </div>
+            <div class="news-list">
+                
+            <div class="news-item" style="animation-delay: 0.05s">
+                <div class="news-rank top-3">1</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.rootdata.com/zh/Projects/detail/B3?k=MTMxNTQ=" target="_blank">
+                        2026-01
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T13:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.1s">
+                <div class="news-rank top-3">2</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236243" target="_blank">
+                        数据：496.31 枚 BTC 从匿名地址转出，价值约 4493 万美元
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:20</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.15000000000000002s">
+                <div class="news-rank top-3">3</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236242" target="_blank">
+                        法国发生一起加密货币抢劫案，三名男子持枪闯入民宅抢走加密 U 盘
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:18</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.2s">
+                <div class="news-rank ">4</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236241" target="_blank">
+                        数据：263.01 枚 BTC 从 Coinbase 转出，价值约 2380 万美元
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:10</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.25s">
+                <div class="news-rank ">5</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236240" target="_blank">
+                        XRP 现货 ETF 已累计吸纳超 10 亿美元资金，部分机构投资者仍不看好并将其视为 Meme 币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:07</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.30000000000000004s">
+                <div class="news-rank ">6</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236239" target="_blank">
+                        某加密倡导组织在 Fox 新闻黄金时段投放广告反对加密结构法案 DeFi 条款
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:04</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.35000000000000003s">
+                <div class="news-rank ">7</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236238" target="_blank">
+                        RootData：ERA 将于一周后解锁价值约 365 万美元的代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.4s">
+                <div class="news-rank ">8</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236237" target="_blank">
+                        RootData：APE 将于一周后解锁价值约 316 万美元的代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.45s">
+                <div class="news-rank ">9</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236236" target="_blank">
+                        RootData：ZK 将于一周后解锁价值约 591 万美元的代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.5s">
+                <div class="news-rank ">10</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236235" target="_blank">
+                        RootData：A8 将于一周后解锁价值约 114 万美元的代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T11:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.55s">
+                <div class="news-rank ">11</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236234" target="_blank">
+                        数据：519.99 万枚 EIGEN 从匿名地址转出，经中转后流入 Uniswap
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:51</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.6000000000000001s">
+                <div class="news-rank ">12</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236233" target="_blank">
+                        数据：过去 24h Binance 净流出 12.59 亿 USDT
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:38</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.65s">
+                <div class="news-rank ">13</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236232" target="_blank">
+                        数据：美国 Solana 现货 ETF 无净流入，维持平稳状态
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:37</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.7000000000000001s">
+                <div class="news-rank ">14</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236231" target="_blank">
+                        鲸鱼在 Hyperliquid 上卖出 255 枚 BTC 后，以 62% 胜率盈利 990 万美元
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:35</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.75s">
+                <div class="news-rank ">15</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236230" target="_blank">
+                        数据：美国 XRP 现货 ETF 单日净流入 493 万美元
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:15</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8s">
+                <div class="news-rank ">16</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236229" target="_blank">
+                        数据：116.91 枚 BTC 从匿名地址转出，经中转后流入 Binance
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:10</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8500000000000001s">
+                <div class="news-rank ">17</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236228" target="_blank">
+                        参议院两党倾向调整 GENIUS 稳定币收益规则，CLARITY 法案推进在即
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:02</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9s">
+                <div class="news-rank ">18</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236227" target="_blank">
+                        数据：1447.32 万枚 POL 从 BitGo 转入 Polygon，价值约 231.62 万美元
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:01</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9500000000000001s">
+                <div class="news-rank ">19</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236226" target="_blank">
+                        数据：Hyperliquid 平台鲸鱼当前持仓 65.98 亿美元，多空持仓比为 0.93
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T10:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.0s">
+                <div class="news-rank ">20</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236225" target="_blank">
+                        德林控股旗下德林证券预计 2 月开始提供虚拟资产交易服务
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T09:56</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.05s">
+                <div class="news-rank ">21</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236224" target="_blank">
+                        知情人士：加密市场结构法案存在推迟投票的可能
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge">🕐 2026-01-10T09:38</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.1s">
+                <div class="news-rank ">22</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/a16z-raises-15-billion-says-crypto-crucial-to-americas-future?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        A16z raises $15B, says crypto a 'key' to America winning next 100 years
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-10T02:56</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.15000000000000002s">
+                <div class="news-rank ">23</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/stablecoin-card-adoption-to-take-off-in-2026-dragonfly?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Stablecoin card adoption will be a 'big theme' of 2026: Dragonfly exec
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-10T00:46</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.2s">
+                <div class="news-rank ">24</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-tests-key-support-as-bulls-reset-to-prepare-for-futures-led-rally-to-dollar101-5k?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin tests key support as bulls reset to prepare for futures-led rally to $101.5K
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T22:09</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.25s">
+                <div class="news-rank ">25</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/nasdaq-cme-group-nasdaq-cme-crypto-index?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Nasdaq, CME Group join forces to launch Nasdaq-CME Crypto Index
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T21:40</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.30000000000000004s">
+                <div class="news-rank ">26</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/colombia-advances-crypto-tax-rules-global-reporting-standards-take-shape?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Colombia advances crypto tax rules as global reporting standards take shape
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T21:35</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.35000000000000003s">
+                <div class="news-rank ">27</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/market-structure-bill-conflict-interest-safeguards?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        US lawmakers demand ethics safeguards for market structure bill: Report
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T21:04</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.4s">
+                <div class="news-rank ">28</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/wall-street-banks-crypto-etfs-tokenized-cash?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Wall Street’s crypto debate is over as banks go all-in on BTC, stablecoins, tokenized cash
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T21:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.45s">
+                <div class="news-rank ">29</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/clarity-act-hinges-bipartisan-support-numbers?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        CLARITY Act hinges on bipartisan support, and here are the numbers: Analyst
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T20:23</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.5s">
+                <div class="news-rank ">30</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/ritchie-torres-bill-elected-officials-prediction-markets-bets?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        US lawmaker's bill would ban politically related prediction bets after Maduro wager
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T19:55</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.55s">
+                <div class="news-rank ">31</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/trading-bots-gain-traction-crypto-markets-move-sideways-htx-2025-recap?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Trading bots gain traction as crypto markets move sideways: HTX 2025 recap
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T19:37</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.6000000000000001s">
+                <div class="news-rank ">32</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/what-happened-in-crypto-today?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Here’s what happened in crypto today
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T19:32</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.65s">
+                <div class="news-rank ">33</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-90k-etfs-institutions-reposition?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin holds $90K as ETFs wobble and institutions reposition: Finance Redefined
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T19:00</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.7000000000000001s">
+                <div class="news-rank ">34</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-s-next-super-rally-could-depend-on-this-key-data-point?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin’s next super rally could depend on this key data point
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T18:30</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.75s">
+                <div class="news-rank ">35</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/price-predictions-1-9-btc-eth-xrp-bnb-sol-doge-ada-bch-link-hype?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Price predictions 1/9: BTC, ETH, XRP, BNB, SOL, DOGE, ADA, BCH, LINK, HYPE
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T17:30</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8s">
+                <div class="news-rank ">36</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bny-tokenized-deposits-bank-rush-blockchain-crypto?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        BNY launches tokenized deposits amid TradFi rush into blockchain and crypto
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T17:03</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8500000000000001s">
+                <div class="news-rank ">37</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/vitalik-buterin-support-roman-storm-privacy-concerns?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Ethereum co-founder reiterates support for Roman Storm, citing privacy
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T16:33</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9s">
+                <div class="news-rank ">38</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/security-expert-bruce-schneier-guarantees-governments-are-bulk-spying-with-ai?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Security expert Bruce Schneier ‘guarantees’ governments are bulk spying with AI
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T16:16</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9500000000000001s">
+                <div class="news-rank ">39</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-price-clings-90k-traders-us-supreme-court-tariff-ruling?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin price clings to $90K as traders eye US Supreme Court tariff ruling
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T15:07</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.0s">
+                <div class="news-rank ">40</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-rsi-bull-signals-multiply-price-battles-90k-control?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin RSI hints at $105K BTC price rebound as bull signals multiply
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T13:43</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.05s">
+                <div class="news-rank ">41</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/ripple-uk-regulatory-approval-local-subsidiary-fca?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Ripple scores UK regulatory approval via local subsidiary
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T13:23</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.1s">
+                <div class="news-rank ">42</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/sharplink-33m-ether-staking-170m-yield?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Sharplink pockets $33M from Ether staking, deploys another $170M ETH
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T12:59</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.15000000000000002s">
+                <div class="news-rank ">43</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/rain-stablecoin-platform-visa-member-250-million-raise?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Visa-linked stablecoin platform Rain raises $250M at $1.95B valuation
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T12:37</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.2s">
+                <div class="news-rank ">44</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/the-hidden-risk-of-public-wifi?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        The hidden risk of public WiFi: How a single approval wiped a crypto wallet
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T12:22</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.25s">
+                <div class="news-rank ">45</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/grayscale-bnb-hype-etf-delaware-trusts?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Grayscale forms trusts tied to potential BNB and HYPE ETFs
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T11:57</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.30000000000000004s">
+                <div class="news-rank ">46</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/zcash-developer-activity-2021-governance-dispute?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Zcash sees developer slowdown as ZEC extends two-month slide
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T10:54</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.35000000000000003s">
+                <div class="news-rank ">47</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/babylon-code-vulnerability-block-production?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Vulnerability found in Babylon staking code could slow block production
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T10:14</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.4s">
+                <div class="news-rank ">48</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/bitcoin-ether-etf-outflows-january-2026-pullback?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Bitcoin and Ether ETFs shed over $1B as early 2026 inflows reverse
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T09:34</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.45s">
+                <div class="news-rank ">49</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/uk-crypto-september-2026-fca-licensing-gateway?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        FCA sets September 2026 start for UK crypto licensing applications
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T09:02</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.5s">
+                <div class="news-rank ">50</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/south-korea-exchange-held-bitcoin?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        South Korea’s top court rules exchange-held Bitcoin can be seized
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T08:49</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.55s">
+                <div class="news-rank ">51</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://cointelegraph.com/news/iran-cut-internet-could-citizens-still-use-crypto?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound" target="_blank">
+                        Iran is cut off from the internet: Here’s how crypto could still work
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">Cointelegraph</span>
+                        <span class="time-badge">🕐 2026-01-09T06:24</span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.6000000000000001s">
+                <div class="news-rank ">52</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236243" target="_blank">
+                        数据：496.31 枚 BTC 从匿名地址转出，价值约 4493 万美元  01-10 11:20 ChainCatcher 消息，据 Arkham 数据，在 11:11，496.31 枚 BTC（价值约 4493 万美元）从一匿名地址（1DCpWKHC...开头）转出至多个地址，其中包括 WhiteBIT 和 Roobet。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.65s">
+                <div class="news-rank ">53</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236242" target="_blank">
+                        法国发生一起加密货币抢劫案，三名男子持枪闯入民宅抢走加密 U 盘  01-10 11:18 ChainCatcher 消息，据 Decrypt 报道，三名蒙面男子闯入法国马诺斯克的一户民宅，持枪捆绑一名女子，并抢走了一个装有加密货币的 U 盘。受害者并未受伤，她在几分钟内自行挣脱并报警。目前，案件已立案调查，并交由当地刑事调查部门和国家警察区域分局负责。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.7000000000000001s">
+                <div class="news-rank ">54</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236241" target="_blank">
+                        数据：263.01 枚 BTC 从 Coinbase 转出，价值约 2380 万美元  01-10 11:10 ChainCatcher 消息，据 Arkham 数据，在 11:00，263.01 枚 BTC（价值约 2380 万美元）从 Coinbase 转出至一匿名地址（1H8JE9TG...开头）。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.75s">
+                <div class="news-rank ">55</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236240" target="_blank">
+                        XRP 现货 ETF 已累计吸纳超 10 亿美元资金，部分机构投资者仍不看好并将其视为 Meme 币  01-10 11:07 ChainCatcher 消息，自 2025 年上市以来，XRP 现货 ETF 已吸纳超 10 亿美元资金，然而部分分析师预测这波热潮恐难持续。投资平台 Glider 联合创始人 Brian Huang 表示：“投资的核心在于增长潜力以及有哪些建设者在该区块链上开发，当我们审视 a16z 投资版图中的建设者关注度时，XRP 甚至未能上榜。”Huang 的质疑源于 XRP 生态建设者的匮乏。“建设者创造的基础设施和应用程序能推动生态系统发展，提升底层代币价值，”Huang 解释称，“若无建设者，XRP 的增长将极其有限。多数大型机构甚至不将 Ripple 关联的 XRP 视作严肃项目。持有绝大部分加密 ETF 的机构投资者可能不愿持有 XRP，他们将其视为 Meme 币。”
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8s">
+                <div class="news-rank ">56</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236239" target="_blank">
+                        某加密倡导组织在 Fox 新闻黄金时段投放广告反对加密结构法案 DeFi 条款  01-10 11:04 ChainCatcher 消息，加密记者 Eleanor Terrett 在 X 平台发文表示，一个新出现的加密倡导组织“投资者透明度联盟（ Investors For Transparency ）”在 Fox 新闻黄金时段投放广告，呼吁大众反对即将出台的加密市场结构法案中关于去中心化金融（ DeFi ）的条款，该法案将于下周进行投票表决，其中 DeFi 条款一直是最具争议的部分之一，在立法者、传统金融（ TradFi ）以及加密货币行业内部都引发激烈争论。值得关注的是，UniSwap 创始人 Hayden Adams 披露该加密倡导组织的资金来源和支持者信息似乎非常“神秘”，目前尚未公开披露。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.8500000000000001s">
+                <div class="news-rank ">57</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236238" target="_blank">
+                        RootData：ERA 将于一周后解锁价值约 365 万美元的代币  01-10 11:00 ChainCatcher 消息，据Web3资产数据平台 RootData 代币解锁数据，Caldera（ERA）将于北京时间 01 月 17 日 15 时解锁约 1808 万枚代币，价值约 365 万美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9s">
+                <div class="news-rank ">58</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236237" target="_blank">
+                        RootData：APE 将于一周后解锁价值约 316 万美元的代币  01-10 11:00 ChainCatcher 消息，据Web3资产数据平台 RootData 代币解锁数据，ApeCoin（APE）将于北京时间 01 月 17 日 8 时解锁约 1487 万枚代币，价值约 316 万美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.9500000000000001s">
+                <div class="news-rank ">59</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236236" target="_blank">
+                        RootData：ZK 将于一周后解锁价值约 591 万美元的代币  01-10 11:00 ChainCatcher 消息，据Web3资产数据平台 RootData 代币解锁数据，zkSync（ZK）将于北京时间 01 月 17 日 0 时解锁约 17314 万枚代币，价值约 591 万美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.0s">
+                <div class="news-rank ">60</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236235" target="_blank">
+                        RootData：A8 将于一周后解锁价值约 114 万美元的代币  01-10 11:00 ChainCatcher 消息，据Web3资产数据平台 RootData 代币解锁数据，Ancient8（A8）将于北京时间 01 月 17 日 0 时解锁约 2394 万枚代币，价值约 114 万美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.05s">
+                <div class="news-rank ">61</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236234" target="_blank">
+                        数据：519.99 万枚 EIGEN 从匿名地址转出，经中转后流入 Uniswap  01-10 10:51 ChainCatcher 消息，据 Arkham 数据，在 10:43，500.95 万枚 EIGEN（价值约 204.14 万美元）从 Uniswap 转出至一匿名地址（0x4817...开头）。随后，在 10:48，该地址将 519.99 万枚 EIGEN（价值约 211.9 万美元）转移至 Uniswap。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.1s">
+                <div class="news-rank ">62</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236233" target="_blank">
+                        数据：过去 24h Binance 净流出 12.59 亿 USDT  01-10 10:38 ChainCatcher 消息，据 Coinglass 数据显示，Binance 在过去 24 小时内净流出 12.59 亿 USDT。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.15000000000000002s">
+                <div class="news-rank ">63</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236232" target="_blank">
+                        数据：美国 Solana 现货 ETF 无净流入，维持平稳状态  01-10 10:37 ChainCatcher 消息，根据 SoSoValue 数据，昨日（美东时间 1 月 9 日）Solana 现货 ETF 无净流入，八支以Solana现货 ETF 全天无一净流入或净流出，呈现零变动状态。 截至发稿前，Solana 现货 ETF 总资产净值为 10.9 亿美元，Solana 净资产比率 1.43%，历史累计净流入已达 8.17 亿美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.2s">
+                <div class="news-rank ">64</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236231" target="_blank">
+                        鲸鱼在 Hyperliquid 上卖出 255 枚 BTC 后，以 62% 胜率盈利 990 万美元  01-10 10:35 ChainCatcher 消息，据链上分析师余烬监测，鲸鱼 0x94d...814 在 22 天前把 255 枚 BTC (2,177 万美元) 转进 Hyperliquid 以 85,378 美元的价格卖出，然后用这些钱在过去 22 天时间里高频开单，以 69 笔交易 62% 胜率盈利了 990 万美元。最近两天该鲸鱼持续做多，现在持有着价格高达 3.1 亿美元的多单，浮亏 140 万美元：1,699 BTC (1.54 亿美元)，开仓价 90,801 美元；3.3 万 ETH (1.02 亿美元)，开仓价 3,099 美元；33.6 万 SOL (4,583 万美元)，开仓价 138.6 美元；377.7 万 XRP (791 万美元)，开仓价 2.13 美元。该鲸鱼做多的标的基本上和现在持有着 7.88 亿美元多仓的 2.3 亿美元开多巨鲸一样，多仓合计价值 11 亿美元，占到了 Hyperliquid 上全部多单的三分之一。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.25s">
+                <div class="news-rank ">65</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236230" target="_blank">
+                        数据：美国 XRP 现货 ETF 单日净流入 493 万美元  01-10 10:15 ChainCatcher 消息，根据 SoSoValue 数据，XRP 现货 ETF 总净流入 493 万美元。 净流入最多的现货 XRP ETF 为 Franklin XRP ETF XRPZ，单日净流入 453 万美元，历史总净流入达 2.77 亿美元。其次为 Grayscale XRP ETF GXRP，单日净流入 40.4 万美元，历史总净流入达 2.63 亿美元。截至发稿前，XRP 现货 ETF 总资产净值为 14.7 亿美元，XRP 净资产比率 1.16%，历史累计净流入已达 12.2 亿美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.30000000000000004s">
+                <div class="news-rank ">66</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236229" target="_blank">
+                        数据：116.91 枚 BTC 从匿名地址转出，经中转后流入 Binance  01-10 10:10 ChainCatcher 消息，据 Arkham 数据，在 10:03，116.91 枚 BTC（价值约 1059 万美元）从一匿名地址（3MRSC...开头）转出至另一匿名地址（3HpB8...开头）。随后，该地址将部分 BTC（3 枚）转移至 Binance。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.35000000000000003s">
+                <div class="news-rank ">67</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236228" target="_blank">
+                        参议院两党倾向调整 GENIUS 稳定币收益规则，CLARITY 法案推进在即  01-10 10:02 ChainCatcher 消息，消息人士透露，参议院两党议员正逐步接受银行业游说团体关于调整 GENIUS 法案中稳定币收益规则的诉求。相关调整路径包括：采纳参议员 Alsobrooks 提出的方案，将收益限定在交易环节（更受民主党支持）；或要求仅持有美国货币监理署（OCC）银行牌照的机构才能提供稳定币收益，后者被认为对部分加密行业更友好，但在 DeFi 领域争议较大。此外，消息称 Scott 预计将于今晚提交众议院版本的 CLARITY Act 作为占位文本，以启动下周的审议流程，正式文本最晚需在周一午夜前提交。另有参与与参议院工作人员沟通的业内人士表示，此前所谓“需要祈祷才能通过法案”的说法更多是轻松玩笑，而非对立法前景的悲观判断，最终走向或将在未来数日内逐步明朗。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.4s">
+                <div class="news-rank ">68</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236227" target="_blank">
+                        数据：1447.32 万枚 POL 从 BitGo 转入 Polygon，价值约 231.62 万美元  01-10 10:01 ChainCatcher 消息，据 Arkham 数据，在 09:54，1447.32 万枚 POL（价值约 231.62 万美元）从 BitGo 转入 Polygon。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.45s">
+                <div class="news-rank ">69</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236226" target="_blank">
+                        数据：Hyperliquid 平台鲸鱼当前持仓 65.98 亿美元，多空持仓比为 0.93  01-10 10:00 ChainCatcher 消息，据 Coinglass 数据，Hyperliquid 平台鲸鱼当前持仓 65.98 亿美元，多单持仓 31.83 亿美元，持仓占比 48.24%，空单持仓 34.15 亿美元，持仓占比 51.76%。多单盈亏 -1.58 亿美元，空单盈亏 2.32 亿美元。其中，巨鲸地址 0xb317..ae 在 3147.39 美元价格 5 倍全仓做多 ETH，目前未实现盈亏 -1,179.24 万美元。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.5s">
+                <div class="news-rank ">70</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236225" target="_blank">
+                        德林控股旗下德林证券预计 2 月开始提供虚拟资产交易服务  01-10 09:56 ChainCatcher 消息，据 AASTOCKS 报道，德林控股（01709.HK）宣布，其附属公司德林证券的第 1 类（证券交易）受规管活动牌照及相关发牌条件已获证监会升级，自 2025 年 12 月 30 日起生效。德林证券将在完成与证监会持牌平台的系统连接及测试后，开始提供虚拟资产交易服务，预计将于 2026 年 2 月正式落实。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.55s">
+                <div class="news-rank ">71</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/article/2236224" target="_blank">
+                        知情人士：加密市场结构法案存在推迟投票的可能  01-10 09:38 ChainCatcher 消息，据三位匿名知情人士透露，参议院农业委员会主席 Boozman（共和党-阿肯色州）正考虑推迟委员会对里程碑式加密货币立法法案的投票，前提是两党谈判在未来几天取得实质性进展。 Boozman 目前仍计划于 1 月 15 日推进加密市场监管立法法案的审议程序。但他现在对推迟投票持开放态度，具体取决于其团队未来数日与民主党首席谈判代表、新泽西州参议员 Cory Booker 的协商进展。若双方本周末取得实质性突破，他可能推迟投票以争取两党对法案的共同支持。
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.6000000000000001s">
+                <div class="news-rank ">72</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.rootdata.com/zh/Projects/detail/B3?k=MTMxNTQ=" target="_blank">
+                        B3 将解锁 56700.00 万枚代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.65s">
+                <div class="news-rank ">73</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.rootdata.com/zh/Projects/detail/ChainGPT?k=OTkzMQ==" target="_blank">
+                        CGPT 将解锁 768.40 万枚代币
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.7000000000000001s">
+                <div class="news-rank ">74</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://www.chaincatcher.com/clist.xml" target="_blank">
+                        RSS LINK
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            <div class="news-item" style="animation-delay: 0.75s">
+                <div class="news-rank ">75</div>
+                <div class="news-content">
+                    <a class="news-title" href="https://beian.miit.gov.cn/?spm=a2c4g.11186623.0.0.26b45bb6J585QD#/Integrated/index" target="_blank">
+                        琼ICP备2021009392号
+                        <span class="link-icon">↗</span>
+                    </a>
+                    <div class="news-meta">
+                        <span class="source-badge">ChainCatcher 链捕手</span>
+                        <span class="time-badge"></span>
+                    </div>
+                </div>
+                <div class="news-glow"></div>
+            </div>
+        
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-logo">VOIVERSE</div>
+            <div class="footer-line"></div>
+            <div class="footer-text">Web3 Intelligence System</div>
+            <div class="footer-time">Generated: 2026-01-10 11:21:56</div>
+        </footer>
+    </div>
+
+    <!-- 粒子动画脚本 -->
+    <script>
+        // 隐藏加载动画
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('hidden');
+            }, 800);
+        });
+
+        // 粒子背景
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const particles = [];
+        const particleCount = 80;
+        const colors = ['#00d4ff', '#8338ec', '#ff006e', '#06ffa5'];
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 初始化粒子
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // 连接粒子的线
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = particles[i].color;
+                        ctx.globalAlpha = 0.1 * (1 - distance / 150);
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // 数字滚动动画
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(num => {
+                const target = parseInt(num.getAttribute('data-value'));
+                const duration = 2000;
+                const start = performance.now();
+
+                function update(currentTime) {
+                    const elapsed = currentTime - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(target * easeOut);
+                    num.textContent = current;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    }
+                }
+
+                requestAnimationFrame(update);
+            });
+        }
+
+        // 页面加载后启动数字动画
+        setTimeout(animateNumbers, 1000);
+
+        // 鼠标移动视差效果
+        document.addEventListener('mousemove', function(e) {
+            const orbs = document.querySelectorAll('.glow-orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            orbs.forEach((orb, index) => {
+                const speed = (index + 1) * 20;
+                orb.style.transform = `translate(${(x - 0.5) * speed}px, ${(y - 0.5) * speed}px)`;
+            });
+        });
+    </script>
+</body>
+</html>
