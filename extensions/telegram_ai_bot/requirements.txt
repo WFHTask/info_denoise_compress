@@ -1,0 +1,9 @@
+aiogram==3.24.0
+aiosqlite==0.22.1
+python-dotenv==1.2.1
+feedparser==6.0.12
+apscheduler==3.10.4
+aiohttp==3.13.3
+aiohttp-socks==0.10.1
+litellm==1.80.11
+cryptography==41.0.7
