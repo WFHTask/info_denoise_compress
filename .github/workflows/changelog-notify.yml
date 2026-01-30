@@ -1,0 +1,71 @@
+name: Notify Users of CHANGELOG Updates
+
+# 当 CHANGELOG.md 推送到 main 分支时触发
+# 在服务器上执行脚本，发送更新通知给用户
+
+on:
+  push:
+    branches:
+      - main
+      - beta1.0
+    paths:
+      - 'CHANGELOG.md'
+  
+  # 手动触发（用于测试）
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit to check changes
+      
+      - name: Check if CHANGELOG.md actually changed
+        id: check_changes
+        run: |
+          # For workflow_dispatch, always run
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual trigger, will send notifications"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Get the diff for CHANGELOG.md
+          DIFF=$(git diff HEAD~1 HEAD -- CHANGELOG.md || true)
+          if [ -z "$DIFF" ]; then
+            echo "No actual changes to CHANGELOG.md"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG.md has changes"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Execute notification script on server
+        if: steps.check_changes.outputs.changed == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
+        run: |
+          # Set up SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts 2>/dev/null
+          
+          # First, pull latest code on server (use the branch that triggered the workflow)
+          ssh $SERVER_USER@$SERVER_HOST "cd $PROJECT_PATH && git pull origin ${{ github.ref_name }}"
+          
+          # Execute the notification script on the server
+          # The script runs in the bot container where all dependencies and data are available
+          ssh $SERVER_USER@$SERVER_HOST "cd $PROJECT_PATH && docker compose exec -T bot python scripts/send_changelog_update.py"
+      
+      - name: Summary
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          echo "✅ CHANGELOG update notifications sent successfully!"
