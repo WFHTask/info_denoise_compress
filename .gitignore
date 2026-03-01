@@ -58,8 +58,9 @@ data/
 data_dev/
 data_test/
 
-# Dev compose
+# Dev compose (开发环境不使用 Docker，避免与生产环境冲突)
 docker-compose.dev.yml
+docker-compose.yml.bak
 
 # Claude Code
 .claude/
@@ -70,6 +71,7 @@ tmpclaude-*
 信息过滤服务流程与Prompt文档总结.md
 信息筛选算法升级说明2.0.md
 开发任务计划_Development_Tasks.md
+*.docx
 
 # ============ 测试/验收产物（不提交 Git） ============
 # 验收报告、测试结论等文档
