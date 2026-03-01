@@ -19,7 +19,7 @@ import re
 import sys
 import logging
 import argparse
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -290,58 +290,78 @@ async def send_update_to_user(
         return False
 
 
-async def main(dry_run: bool = False):
-    """Main function to send changelog updates."""
-    
-    # Parse changelog
+async def send_latest_changelog_update(dry_run: bool = False) -> Optional[Dict[str, Any]]:
+    """
+    Parse latest CHANGELOG entry and send to all subscribed users.
+
+    Returns:
+        Summary dict when parsing succeeds, None when parsing fails.
+    """
     changelog = parse_latest_changelog()
     if not changelog:
         logger.error("Failed to parse CHANGELOG.md")
-        sys.exit(1)
-    
+        return None
+
     logger.info(f"Parsed changelog: {changelog['version']} ({changelog['date']})")
     logger.info(f"Content preview: {changelog['content'][:200]}...")
-    
-    # Get subscribed users
+
     users = get_subscribed_users()
     if not users:
         logger.warning("No subscribed users found")
-        return
-    
+        return {
+            "version": changelog["version"],
+            "date": changelog["date"],
+            "total_users": 0,
+            "success_count": 0,
+            "fail_count": 0,
+        }
+
     logger.info(f"Found {len(users)} subscribed users")
-    
-    # Initialize bot
+
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
-    
+
     # Pre-translate for all languages to populate cache
-    languages = set(get_user_language(str(u.get('telegram_id'))) for u in users)
+    languages = set(get_user_language(str(u.get("telegram_id"))) for u in users)
     logger.info(f"Languages to translate: {languages}")
-    
+
     for lang in languages:
-        if lang != 'zh':
-            await translate_changelog(changelog['content'], lang)
-    
-    # Send to all users
+        if lang != "zh":
+            await translate_changelog(changelog["content"], lang)
+
     success_count = 0
     fail_count = 0
-    
+
     for user in users:
-        telegram_id = str(user.get('telegram_id'))
+        telegram_id = str(user.get("telegram_id"))
         if not telegram_id:
             continue
-        
+
         # Rate limiting: 25 messages per second max
         await asyncio.sleep(0.05)
-        
+
         success = await send_update_to_user(bot, telegram_id, changelog, dry_run)
         if success:
             success_count += 1
         else:
             fail_count += 1
-    
+
     logger.info(f"Finished: {success_count} sent, {fail_count} failed")
-    
-    if fail_count > 0:
+    return {
+        "version": changelog["version"],
+        "date": changelog["date"],
+        "total_users": len(users),
+        "success_count": success_count,
+        "fail_count": fail_count,
+    }
+
+
+async def main(dry_run: bool = False):
+    """Main function to send changelog updates."""
+
+    result = await send_latest_changelog_update(dry_run=dry_run)
+    if result is None:
+        sys.exit(1)
+    if result["fail_count"] > 0:
         sys.exit(1)
 
 

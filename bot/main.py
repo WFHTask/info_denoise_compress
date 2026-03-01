@@ -870,6 +870,64 @@ async def post_init(application: Application) -> None:
     else:
         logger.info("Prefetch disabled (PREFETCH_INTERVAL_HOURS=0)")
 
+    # Startup changelog notification check (async, non-blocking startup)
+    application.job_queue.run_once(
+        callback=startup_changelog_notify_job,
+        when=15,  # Execute shortly after boot
+        name="startup_changelog_notify",
+    )
+    logger.info("Scheduled startup changelog notification check in 15 seconds")
+
+
+async def startup_changelog_notify_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Check latest CHANGELOG version and notify subscribers on startup if version changed.
+    """
+    from scripts.send_changelog_update import parse_latest_changelog, send_latest_changelog_update
+    from utils.json_storage import get_system_config, set_system_config
+
+    logger.info("Running startup changelog notification check...")
+
+    try:
+        latest = parse_latest_changelog()
+        if not latest or not latest.get("version"):
+            logger.warning("Startup changelog check skipped: latest version not found")
+            return
+
+        latest_version = latest["version"]
+        last_notified_version = get_system_config("last_notified_version", "")
+
+        if latest_version == last_notified_version:
+            logger.info(f"No new changelog version to notify: {latest_version}")
+            return
+
+        logger.info(
+            f"New changelog detected on startup: latest={latest_version}, "
+            f"last_notified={last_notified_version or 'none'}"
+        )
+
+        result = await send_latest_changelog_update(dry_run=False)
+        if not result:
+            logger.error("Startup changelog notification failed: send result is empty")
+            return
+
+        if result.get("fail_count", 0) > 0:
+            logger.warning(
+                "Startup changelog notification had failures: "
+                f"{result.get('success_count', 0)} sent, {result.get('fail_count', 0)} failed. "
+                "Version marker will not be updated for retry on next startup."
+            )
+            return
+
+        set_ok = set_system_config("last_notified_version", latest_version)
+        if set_ok:
+            logger.info(f"Updated last_notified_version to {latest_version}")
+        else:
+            logger.warning(f"Failed to persist last_notified_version={latest_version}")
+
+    except Exception as e:
+        logger.error(f"Startup changelog notification check failed: {e}", exc_info=True)
+
 
 async def profile_update_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Scheduled job to update user profiles based on feedback."""
