@@ -28,7 +28,12 @@ from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import TelegramError
 
 from config import TELEGRAM_BOT_TOKEN, DATA_DIR
-from utils.json_storage import get_subscribed_users, get_user_language
+from utils.json_storage import (
+    get_subscribed_users,
+    get_user_language,
+    get_system_config,
+    set_system_config,
+)
 from locales.ui_strings import get_ui_locale
 from services.gemini_provider import GeminiProvider
 
@@ -290,18 +295,44 @@ async def send_update_to_user(
         return False
 
 
-async def send_latest_changelog_update(dry_run: bool = False) -> Optional[Dict[str, Any]]:
+async def send_latest_changelog_update(
+    dry_run: bool = False,
+    skip_if_not_changed: bool = True,
+    persist_on_success: bool = True
+) -> Optional[Dict[str, Any]]:
     """
-    Parse latest CHANGELOG entry and send to all subscribed users.
+    Parse latest changelog and notify subscribed users.
+
+    Args:
+        dry_run: If True, do not actually send messages
+        skip_if_not_changed: If True, skip when latest version == last_notified_version
+        persist_on_success: If True, update last_notified_version after full success
 
     Returns:
         Summary dict when parsing succeeds, None when parsing fails.
     """
+    # Parse changelog
     changelog = parse_latest_changelog()
     if not changelog:
         logger.error("Failed to parse CHANGELOG.md")
         return None
 
+    version = changelog.get("version", "")
+    last_notified_version = get_system_config("last_notified_version", "")
+    if skip_if_not_changed and version and version == last_notified_version:
+        logger.info(
+            f"Skip notification: latest version {version} already notified "
+            f"(last_notified_version={last_notified_version})"
+        )
+        return {
+            "version": version,
+            "date": changelog.get("date", ""),
+            "skipped": True,
+            "reason": "already_notified",
+            "success_count": 0,
+            "fail_count": 0,
+            "total_users": 0,
+        }
     logger.info(f"Parsed changelog: {changelog['version']} ({changelog['date']})")
     logger.info(f"Content preview: {changelog['content'][:200]}...")
 
@@ -309,13 +340,14 @@ async def send_latest_changelog_update(dry_run: bool = False) -> Optional[Dict[s
     if not users:
         logger.warning("No subscribed users found")
         return {
-            "version": changelog["version"],
-            "date": changelog["date"],
-            "total_users": 0,
+            "version": version,
+            "date": changelog.get("date", ""),
+            "skipped": False,
+            "reason": "no_users",
             "success_count": 0,
             "fail_count": 0,
+            "total_users": 0,
         }
-
     logger.info(f"Found {len(users)} subscribed users")
 
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
@@ -346,28 +378,43 @@ async def send_latest_changelog_update(dry_run: bool = False) -> Optional[Dict[s
             fail_count += 1
 
     logger.info(f"Finished: {success_count} sent, {fail_count} failed")
+    if fail_count == 0 and (not dry_run) and persist_on_success:
+        set_ok = set_system_config("last_notified_version", version)
+        if set_ok:
+            logger.info(f"Updated last_notified_version to {version}")
+        else:
+            logger.warning(f"Failed to persist last_notified_version={version}")
+
     return {
-        "version": changelog["version"],
-        "date": changelog["date"],
-        "total_users": len(users),
+        "version": version,
+        "date": changelog.get("date", ""),
+        "skipped": False,
+        "reason": "",
         "success_count": success_count,
         "fail_count": fail_count,
+        "total_users": len(users),
     }
 
 
-async def main(dry_run: bool = False):
+async def main(dry_run: bool = False, force: bool = False):
     """Main function to send changelog updates."""
+    result = await send_latest_changelog_update(
+        dry_run=dry_run,
+        skip_if_not_changed=not force,
+        persist_on_success=True,
+    )
 
-    result = await send_latest_changelog_update(dry_run=dry_run)
     if result is None:
         sys.exit(1)
-    if result["fail_count"] > 0:
+
+    if result.get("fail_count", 0) > 0:
         sys.exit(1)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send CHANGELOG update notifications")
     parser.add_argument('--dry-run', action='store_true', help="Don't send messages, just preview")
+    parser.add_argument('--force', action='store_true', help="Force send even if version already notified")
     args = parser.parse_args()
-    
-    asyncio.run(main(dry_run=args.dry_run))
+
+    asyncio.run(main(dry_run=args.dry_run, force=args.force))
