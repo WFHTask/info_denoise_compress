@@ -944,6 +944,8 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     from handlers.group import get_all_group_configs
     from services.rss_fetcher import fetch_all_sources
+    from services.digest_processor import generate_group_digest
+    from services.report_generator import split_report_for_telegram
 
     beijing_tz = ZoneInfo("Asia/Shanghai")
     current_hour = datetime.now(beijing_tz).hour
@@ -978,13 +980,7 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                 if not raw_content:
                     continue
 
-                # Try to generate group digest, fall back to simple notification
-                try:
-                    from services.digest_processor import generate_group_digest
-                    digest_text = await generate_group_digest(raw_content, profile, language)
-                except (ImportError, AttributeError):
-                    # generate_group_digest not yet implemented, send simple summary
-                    digest_text = f"📰 Web3 每日简报\n📅 {today}\n\n今日共收集 {len(raw_content)} 条信息。\n使用 /start 私聊 Bot 获取个性化推荐。"
+                digest_text = await generate_group_digest(raw_content, profile, language)
 
                 # Read admin-configured CTA (falls back to default)
                 from utils.json_storage import get_system_config
@@ -996,12 +992,19 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                     "━━━━━━━━━━━━━━━━━━━━━"
                 )
 
-                await context.bot.send_message(
-                    chat_id=group_id,
-                    text=digest_text + footer,
-                    parse_mode="HTML",
-                    disable_web_page_preview=True,
-                )
+                digest_chunks = split_report_for_telegram(digest_text, max_length=3900)
+                if digest_chunks:
+                    digest_chunks[-1] = digest_chunks[-1] + footer
+                else:
+                    digest_chunks = [footer.strip()]
+
+                for chunk in digest_chunks:
+                    await context.bot.send_message(
+                        chat_id=group_id,
+                        text=chunk,
+                        parse_mode="HTML",
+                        disable_web_page_preview=True,
+                    )
 
                 # Update last push date
                 from handlers.group import save_group_config
