@@ -280,13 +280,7 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             if not telegram_id:
                 continue
 
-            # Determine if user is truly Pro (only when payment system is on)
-            from config import FEATURE_PAYMENT
-            if FEATURE_PAYMENT:
-                is_pro = check_feature(telegram_id, "priority_push")
-            else:
-                from utils.permissions import get_user_plan
-                is_pro = get_user_plan(str(telegram_id)) == "pro"
+            is_pro = check_feature(telegram_id, "priority_push")
 
             custom = user.get("settings", {}).get("push_interval_hours")
             if custom is not None and isinstance(custom, (int, float)) and is_pro:
@@ -1109,8 +1103,111 @@ async def rate_limit_middleware(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle errors in the bot."""
+    """Handle errors in the bot — always notify the user so they don't get stuck."""
     logger.error(f"Exception while handling an update: {context.error}", exc_info=context.error)
+
+    if not isinstance(update, Update):
+        return
+
+    # Determine user language for localized error message
+    try:
+        user = update.effective_user
+        telegram_id = str(user.id) if user else None
+        lang = get_user_language(telegram_id) if telegram_id else "en"
+        ui = get_ui_locale(lang)
+    except Exception:
+        ui = {}
+
+    error_text = ui.get("global_error", (
+        "⚠️ 操作失败，请稍后重试。\n"
+        "Operation failed. Please try again later."
+    ))
+
+    keyboard = [[
+        InlineKeyboardButton(
+            ui.get("menu_main", "主菜单 / Main Menu"),
+            callback_data="back_to_start",
+        )
+    ]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    try:
+        if update.callback_query:
+            await safe_answer_callback_query(
+                update.callback_query, "⚠️ Error", show_alert=False
+            )
+            await update.callback_query.message.reply_text(
+                error_text, reply_markup=reply_markup
+            )
+        elif update.message:
+            await update.message.reply_text(
+                error_text, reply_markup=reply_markup
+            )
+        elif update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=error_text,
+                reply_markup=reply_markup,
+            )
+    except Exception as notify_err:
+        logger.warning(f"Failed to notify user about error: {notify_err}")
+
+
+async def handle_unmatched_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Save unhandled private text messages and reply with guidance (rate-limited)."""
+    from config import USER_MESSAGES_DIR, USER_TEXT_REPLY_LIMIT, USER_TEXT_MAX_LENGTH
+    user = update.effective_user
+    if not user:
+        return
+    telegram_id = str(user.id)
+    raw_text = update.message.text or ""
+    text = raw_text[:USER_TEXT_MAX_LENGTH]
+    now = datetime.now()
+
+    # Always save (text only, truncated to max length)
+    os.makedirs(USER_MESSAGES_DIR, exist_ok=True)
+    date_str = now.strftime("%Y-%m-%d")
+    filepath = os.path.join(USER_MESSAGES_DIR, f"{date_str}.jsonl")
+    import json as _json
+    entry = {
+        "telegram_id": telegram_id,
+        "username": user.username,
+        "first_name": user.first_name,
+        "text": text,
+        "truncated": len(raw_text) > USER_TEXT_MAX_LENGTH,
+        "timestamp": now.isoformat(),
+    }
+    try:
+        with open(filepath, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.error(f"Failed to save user message: {e}")
+
+    logger.info(f"Saved private text from {telegram_id}: {text[:80]}")
+
+    # Rate-limited reply
+    counter_key = f"text_reply_{telegram_id}_{date_str}"
+    count = context.bot_data.get(counter_key, 0)
+    if count >= USER_TEXT_REPLY_LIMIT:
+        return
+
+    context.bot_data[counter_key] = count + 1
+
+    lang = get_user_language(telegram_id)
+    ui = get_ui_locale(lang)
+    guide = ui.get("unmatched_text_guide", (
+        "📝 已收到你的消息。\n\n"
+        "如需操作，请使用以下命令：\n"
+        "  /start    — 主菜单\n"
+        "  /settings — 偏好设置\n"
+        "  /sources  — 信息源管理\n"
+        "  /help     — 帮助"
+    ))
+    keyboard = [[
+        InlineKeyboardButton(ui.get("menu_main", "主菜单"), callback_data="back_to_start"),
+        InlineKeyboardButton(ui.get("settings_title", "设置"), callback_data="update_preferences"),
+    ]]
+    await update.message.reply_text(guide, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 async def noop_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1289,6 +1386,13 @@ def main() -> None:
     # Callback for help from unknown message
     application.add_handler(CallbackQueryHandler(show_help_callback, pattern="^show_help$"))
     application.add_handler(CallbackQueryHandler(noop_callback, pattern="^noop$"))
+
+    # Catch-all: save unhandled private text messages as user behavior data
+    application.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        handle_unmatched_private_text
+    ))
+    logger.info("Private text catch-all handler registered")
 
     # Error handler
     application.add_error_handler(error_handler)

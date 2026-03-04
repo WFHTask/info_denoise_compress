@@ -55,14 +55,18 @@ class OpenAIProvider(LLMProvider):
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
 
+        # Thinking models (kimi-k2, o1, etc.) only accept temperature=1
+        _model_lower = self.model.lower()
+        is_thinking_model = any(k in _model_lower for k in ("k2", "thinking", "o1", "o3"))
+        effective_temp = 1.0 if is_thinking_model else temperature
+
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,
+            "temperature": effective_temp,
             "max_tokens": max_tokens
         }
 
-        # Kimi K2 Thinking 模型需要更长的超时时间，普通模型使用较短超时
         timeout_seconds = 180.0 if is_kimi_api else 60.0
 
         last_error = None
@@ -161,11 +165,14 @@ class OpenAIProvider(LLMProvider):
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
 
-        # 构建 payload
+        _model_lower = self.model.lower()
+        is_thinking_model = any(k in _model_lower for k in ("k2", "thinking", "o1", "o3"))
+        effective_temp = 1.0 if is_thinking_model else temperature
+
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,
+            "temperature": effective_temp,
             "max_tokens": 8192,
         }
 

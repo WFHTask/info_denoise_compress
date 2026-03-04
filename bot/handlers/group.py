@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 
 from telegram import (
+    ForceReply,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Update,
@@ -283,8 +284,10 @@ async def _start_ai_onboarding(
     await context.bot.send_message(
         chat_id=chat.id,
         text=f"{step_text}\n\n{ai_response}\n\n"
-             f"💡 <i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>",
-        parse_mode="HTML"
+             f"💡 <i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>\n\n"
+             f"↩️ <i>{ui.get('group_reply_hint', 'Please reply to this message to respond')}</i>",
+        parse_mode="HTML",
+        reply_markup=ForceReply(selective=True),
     )
 
     return GROUP_ONBOARD_R1
@@ -343,7 +346,10 @@ async def handle_onboard_r1(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END
 
     step_text = ui.get("onboarding_step", "Step {current}/{total}").format(current=2, total=3)
-    await update.message.reply_text(f"{step_text}\n\n{ai_response}")
+    await update.message.reply_text(
+        f"{step_text}\n\n{ai_response}",
+        reply_markup=ForceReply(selective=True),
+    )
 
     return GROUP_ONBOARD_R2
 
@@ -556,8 +562,14 @@ async def handle_adjust_profile_prompt(update: Update, context: ContextTypes.DEF
 
     await query.edit_message_text(
         f"{ui.get('adjust_profile_prompt', '✏️ How would you like to adjust the profile?')}\n\n"
-        f"{ui.get('adjust_profile_current', 'Current profile:')}\n{profile_summary}\n\n"
-        f"{ui.get('adjust_profile_hint', 'Type your adjustment request:')}"
+        f"{ui.get('adjust_profile_current', 'Current profile:')}\n{profile_summary}"
+    )
+
+    chat = update.effective_chat
+    await context.bot.send_message(
+        chat_id=chat.id,
+        text=f"{ui.get('adjust_profile_hint', 'Type your adjustment request:')}",
+        reply_markup=ForceReply(selective=True),
     )
 
     return GROUP_ADJUST

@@ -8,7 +8,7 @@ Reference: python-telegram-bot v22.x (Exa verified 2025-01-12)
 """
 import html
 import logging
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     CallbackQueryHandler,
     CommandHandler,
@@ -138,17 +138,23 @@ async def start_profile_update(update: Update, context: ContextTypes.DEFAULT_TYP
             f"{html.escape(profile)}\n\n"
             f"{ui['divider']}\n\n"
             f"{ui.get('settings_what_change', 'What would you like to change?')}\n\n"
-            f"{examples}\n\n"
-            f"{ui.get('settings_input_or_cancel', 'Enter or /cancel:')}"
+            f"{examples}"
         )
     else:
         await query.edit_message_text(
             f"{ui.get('settings_update_title', 'Update Preferences')}\n"
             f"{ui['divider']}\n\n"
             f"{ui.get('settings_no_prefs', 'No preferences set yet.')}\n\n"
-            f"{examples}\n\n"
-            f"{ui.get('settings_input_or_cancel', 'Enter or /cancel:')}"
+            f"{examples}"
         )
+
+    chat = update.effective_chat
+    is_group = chat and chat.type in ("group", "supergroup")
+    await context.bot.send_message(
+        chat_id=chat.id,
+        text=ui.get("settings_input_or_cancel", "Enter or /cancel:"),
+        reply_markup=ForceReply(selective=True) if is_group else None,
+    )
 
     return AWAITING_PROFILE_UPDATE
 
