@@ -106,7 +106,7 @@
 
 | 技术层 | 选型 | 说明 |
 |--------|------|------|
-| **LLM 引擎** | Gemini / OpenAI / Kimi | 支持 Gemini 3 Pro、GPT-4 系列、Kimi K2 Thinking |
+| **LLM 引擎** | Gemini / Kimi / OpenAI | 多模型链式 fallback，主模型不可用自动切换备用 |
 | **Bot 框架** | python-telegram-bot v22.0 | 官方推荐库 + 定时任务 + 对话流 |
 | **RSS 抓取** | feedparser + httpx | 异步抓取 + 自动去重 |
 | **数据存储** | JSON 文件 | MVP 轻量方案 + 多用户隔离 |
@@ -201,16 +201,17 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 # 管理员 Telegram ID（必填，多个用逗号分隔）
 ADMIN_TELEGRAM_IDS=123456789
 
-# LLM 配置（二选一）
-# --- 方案 A: 使用 Kimi（推荐，国内可用）---
-LLM=openai
-OPENAI_API_KEY=your_kimi_api_key
-OPENAI_MODEL=kimi-k2-thinking
-OPENAI_API_URL=https://api.moonshot.cn/v1/chat/completions
+# LLM 多模型链式配置（按顺序自动 fallback）
+LLM_PROVIDERS=gemini,kimi
 
-# --- 方案 B: 使用 Gemini ---
-# LLM=gemini
-# GEMINI_API_KEY=your_gemini_api_key
+# Gemini 配置
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-3-flash-preview
+
+# Kimi 配置（Gemini 不可用时自动切换）
+KIMI_API_KEY=your_kimi_api_key
+KIMI_MODEL=kimi-k2.5
+KIMI_API_URL=https://api.moonshot.ai/v1/chat/completions
 ```
 
 > 完整配置项参考 `bot/.env.example`
