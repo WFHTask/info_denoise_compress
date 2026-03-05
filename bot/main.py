@@ -280,7 +280,16 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             if not telegram_id:
                 continue
 
-            is_pro = check_feature(telegram_id, "priority_push")
+            # CRITICAL: 推送间隔判定 — 不可使用 check_feature()
+            # check_feature() 在 FEATURE_PAYMENT=false 时对所有人返回 True，
+            # 会导致全员被当作 Pro (1h间隔) 高频推送。
+            # 事故记录: 2026-02-23, 2026-03-05。守卫测试: test_critical_guards.py
+            from config import FEATURE_PAYMENT
+            if FEATURE_PAYMENT:
+                is_pro = check_feature(telegram_id, "priority_push")
+            else:
+                from utils.permissions import get_user_plan
+                is_pro = get_user_plan(str(telegram_id)) == "pro"
 
             custom = user.get("settings", {}).get("push_interval_hours")
             if custom is not None and isinstance(custom, (int, float)) and is_pro:
