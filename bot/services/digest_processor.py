@@ -37,14 +37,14 @@ async def process_single_user(
         Dict with status info: {"user": telegram_id, "status": "success|error", ...}
     """
     from services.rss_fetcher import fetch_user_sources, get_user_source_list
-    from services.content_filter import filter_and_translate_for_user, get_ai_summary, translate_text, translate_content, get_user_target_language
+    from services.content_filter import filter_and_translate_for_user, get_ai_summary, translate_text, translate_content
     from services.report_generator import (
         generate_empty_report,
-        detect_user_language,
         prepare_digest_messages,
         get_translation_language,
         get_locale,
     )
+    from services.language_service import get_user_language
     from utils.json_storage import (
         get_user_profile,
         save_user_raw_content,
@@ -169,9 +169,9 @@ async def process_single_user(
         # Save raw content for this user
         save_user_raw_content(telegram_id, today, raw_content, user_id=user_id)
 
-        # Get user profile for language detection
+        # Get user profile for AI content filtering
         profile = get_user_profile(telegram_id) or ""
-        user_lang = detect_user_language(profile)
+        user_lang = get_user_language(telegram_id)
 
         # 2. Filter content for user (filtering only, no translation)
         filtered_items = await filter_and_translate_for_user(
