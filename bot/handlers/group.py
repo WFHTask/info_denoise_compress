@@ -284,8 +284,8 @@ async def _start_ai_onboarding(
     await context.bot.send_message(
         chat_id=chat.id,
         text=f"{step_text}\n\n{ai_response}\n\n"
-             f"💡 <i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>\n\n"
-             f"↩️ <i>{ui.get('group_reply_hint', 'Please reply to this message to respond')}</i>",
+             f"<i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>\n\n"
+             f"<i>{ui.get('group_reply_hint', 'Please REPLY to this message to respond (do not send a new message or @)')}</i>",
         parse_mode="HTML",
         reply_markup=ForceReply(selective=True),
     )
