@@ -53,6 +53,21 @@ logger = logging.getLogger(__name__)
 ) = range(100, 106)
 
 
+def _get_message_thread_id(update: Update) -> Optional[int]:
+    """Extract the current forum topic/thread id, if the message is inside one."""
+    query = update.callback_query
+    if query and query.message:
+        thread_id = getattr(query.message, "message_thread_id", None)
+        if thread_id is not None:
+            return thread_id
+
+    message = update.message
+    if message:
+        return getattr(message, "message_thread_id", None)
+
+    return None
+
+
 def _get_group_config_path(group_id: str) -> str:
     """Get path to group config file."""
     from config import GROUP_CONFIGS_DIR
@@ -695,6 +710,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     lang = query.data.replace("group_lang_", "")
     chat = update.effective_chat
     group_id = str(chat.id)
+    thread_id = _get_message_thread_id(update)
 
     config = {
         "group_id": group_id,
@@ -706,6 +722,8 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
         "created": datetime.now().isoformat(),
         "enabled": True,
     }
+    if thread_id is not None:
+        config["message_thread_id"] = thread_id
 
     save_group_config(group_id, config)
 
@@ -714,12 +732,14 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     ui = get_ui_locale(lang)
 
     profile_preview = config["profile"][:120] + "..." if len(config["profile"]) > 120 else config["profile"]
+    thread_note = f"\nTopic: {thread_id}" if thread_id is not None else ""
 
     await query.edit_message_text(
         f"{ui['group_setup_complete']}\n\n"
         f"{ui['group_setup_interests'].format(profile=profile_preview)}\n"
         f"{ui['group_setup_push'].format(hour=config['push_hour'])}\n"
-        f"{ui['group_setup_lang'].format(lang_name=lang_names.get(lang, lang))}\n\n"
+        f"{ui['group_setup_lang'].format(lang_name=lang_names.get(lang, lang))}"
+        f"{thread_note}\n\n"
         f"{ui['group_setup_footer']}"
     )
 
@@ -746,13 +766,16 @@ async def handle_group_view(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         ui = get_ui_locale(lang)
         status = ui['group_status_enabled'] if config.get('enabled', True) else ui['group_status_disabled']
         profile_preview = config.get('profile', 'N/A')
+        thread_id = config.get("message_thread_id")
         if len(profile_preview) > 200:
             profile_preview = profile_preview[:200] + "..."
+        thread_line = f"Thread ID: {thread_id}\n" if thread_id is not None else ""
         await query.edit_message_text(
             f"{ui['group_view_title']}\n\n"
             f"{ui['group_label_interests']}:\n{profile_preview}\n\n"
             f"{ui['group_label_push_time']}: {config.get('push_hour', 9)}:00\n"
             f"{ui['group_label_language']}: {config.get('language', 'en')}\n"
+            f"{thread_line}"
             f"{ui['group_label_status']}: {status}\n"
             f"{ui['group_label_created']}: {config.get('created', 'N/A')[:10]}\n\n"
             f"{ui['group_view_footer']}"

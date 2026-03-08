@@ -1066,6 +1066,7 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                 # Generate and send group digest
                 profile = group_config.get("profile", "Web3 general news")
                 language = group_config.get("language", "zh")
+                thread_id = group_config.get("message_thread_id")
 
                 # Fetch public sources
                 raw_content = await fetch_all_sources(hours_back=24)
@@ -1091,11 +1092,17 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                     digest_chunks = [footer.strip()]
 
                 for chunk in digest_chunks:
+                    send_kwargs = {
+                        "chat_id": group_id,
+                        "text": chunk,
+                        "parse_mode": "HTML",
+                        "disable_web_page_preview": True,
+                    }
+                    if thread_id is not None:
+                        send_kwargs["message_thread_id"] = thread_id
+
                     await context.bot.send_message(
-                        chat_id=group_id,
-                        text=chunk,
-                        parse_mode="HTML",
-                        disable_web_page_preview=True,
+                        **send_kwargs,
                     )
 
                 # Update last push date
@@ -1103,7 +1110,10 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                 group_config["last_push_date"] = today
                 save_group_config(group_id, group_config)
 
-                logger.info(f"Group digest pushed to {group_id}")
+                if thread_id is not None:
+                    logger.info(f"Group digest pushed to {group_id} thread {thread_id}")
+                else:
+                    logger.info(f"Group digest pushed to {group_id}")
 
             except Exception as e:
                 logger.error(f"Failed to push digest to group {group_id}: {e}")
