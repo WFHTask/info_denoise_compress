@@ -17,7 +17,14 @@ from datetime import time, datetime, timedelta
 from typing import Dict, Any
 from zoneinfo import ZoneInfo
 
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import (
+    BotCommand,
+    BotCommandScopeAllGroupChats,
+    BotCommandScopeAllPrivateChats,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -699,52 +706,76 @@ async def post_init(application: Application) -> None:
     from config import resolve_default_sources_rss
     await resolve_default_sources_rss()
     
-    # Set bot commands menu (only show user-facing commands)
-    # Set bot commands menu for different languages
-    # Telegram will show the menu based on user's Telegram client language
-    
-    # Chinese (default)
-    commands_zh = [
+    # Set bot commands menu for private chats and groups separately.
+    # This exposes /setup in groups without cluttering private chat menus.
+    private_commands_zh = [
         BotCommand("start", "主菜单"),
         BotCommand("help", "帮助信息"),
         BotCommand("settings", "偏好设置"),
         BotCommand("sources", "信息源管理"),
         BotCommand("stats", "查看统计"),
     ]
-    await application.bot.set_my_commands(commands_zh)  # Default
-    await application.bot.set_my_commands(commands_zh, language_code="zh")
-    
-    # English
-    commands_en = [
+    await application.bot.set_my_commands(private_commands_zh)  # Default fallback
+    await application.bot.set_my_commands(private_commands_zh, scope=BotCommandScopeAllPrivateChats())
+    await application.bot.set_my_commands(private_commands_zh, scope=BotCommandScopeAllPrivateChats(), language_code="zh")
+
+    private_commands_en = [
         BotCommand("start", "Main Menu"),
         BotCommand("help", "Help"),
         BotCommand("settings", "Preferences"),
         BotCommand("sources", "Sources"),
         BotCommand("stats", "Statistics"),
     ]
-    await application.bot.set_my_commands(commands_en, language_code="en")
-    
-    # Japanese
-    commands_ja = [
+    await application.bot.set_my_commands(private_commands_en, scope=BotCommandScopeAllPrivateChats(), language_code="en")
+
+    private_commands_ja = [
         BotCommand("start", "メインメニュー"),
         BotCommand("help", "ヘルプ"),
         BotCommand("settings", "設定"),
         BotCommand("sources", "情報源"),
         BotCommand("stats", "統計"),
     ]
-    await application.bot.set_my_commands(commands_ja, language_code="ja")
-    
-    # Korean
-    commands_ko = [
+    await application.bot.set_my_commands(private_commands_ja, scope=BotCommandScopeAllPrivateChats(), language_code="ja")
+
+    private_commands_ko = [
         BotCommand("start", "메인 메뉴"),
         BotCommand("help", "도움말"),
         BotCommand("settings", "설정"),
         BotCommand("sources", "소스"),
         BotCommand("stats", "통계"),
     ]
-    await application.bot.set_my_commands(commands_ko, language_code="ko")
-    
-    logger.info("Bot commands menu set for zh/en/ja/ko languages")
+    await application.bot.set_my_commands(private_commands_ko, scope=BotCommandScopeAllPrivateChats(), language_code="ko")
+
+    group_commands_zh = [
+        BotCommand("setup", "配置群推送"),
+        BotCommand("help", "帮助信息"),
+        BotCommand("cancel", "取消当前操作"),
+    ]
+    await application.bot.set_my_commands(group_commands_zh, scope=BotCommandScopeAllGroupChats())
+    await application.bot.set_my_commands(group_commands_zh, scope=BotCommandScopeAllGroupChats(), language_code="zh")
+
+    group_commands_en = [
+        BotCommand("setup", "Configure group push"),
+        BotCommand("help", "Help"),
+        BotCommand("cancel", "Cancel current action"),
+    ]
+    await application.bot.set_my_commands(group_commands_en, scope=BotCommandScopeAllGroupChats(), language_code="en")
+
+    group_commands_ja = [
+        BotCommand("setup", "グループ配信を設定"),
+        BotCommand("help", "ヘルプ"),
+        BotCommand("cancel", "現在の操作をキャンセル"),
+    ]
+    await application.bot.set_my_commands(group_commands_ja, scope=BotCommandScopeAllGroupChats(), language_code="ja")
+
+    group_commands_ko = [
+        BotCommand("setup", "그룹 푸시 설정"),
+        BotCommand("help", "도움말"),
+        BotCommand("cancel", "현재 작업 취소"),
+    ]
+    await application.bot.set_my_commands(group_commands_ko, scope=BotCommandScopeAllGroupChats(), language_code="ko")
+
+    logger.info("Bot commands menu set for private/group chats in zh/en/ja/ko")
 
     # Get timezone for Beijing
     beijing_tz = ZoneInfo("Asia/Shanghai")

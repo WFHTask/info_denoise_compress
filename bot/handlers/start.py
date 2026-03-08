@@ -51,10 +51,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     Check if user exists, show appropriate welcome message.
     """
     user = update.effective_user
+    chat = update.effective_chat
     telegram_id = str(user.id)
 
     # 埋点：会话开始
     track_event(telegram_id, "session_start", {"command": "start"})
+
+    # In groups, /start acts as a setup guide instead of opening the private main menu.
+    if chat and chat.type in ("group", "supergroup"):
+        lang = normalize_language_code(getattr(user, "language_code", None))
+        ui = get_ui_locale(lang)
+        await update.message.reply_text(ui["group_welcome_on_join"])
+        return ConversationHandler.END
 
     # Check if user already registered
     existing_user = get_user(telegram_id)
