@@ -295,6 +295,7 @@ class TestGroupAIOnboarding:
         ]
         group_context.chat_data["language"] = "zh"
         group_context.chat_data["language_native"] = "Chinese"
+        group_context.chat_data["setup_message_thread_id"] = 888
 
         with patch("handlers.group.call_gemini", new_callable=AsyncMock,
                     return_value="[群组类型]\nDeFi 深度分析群\n[关注领域]\n- DeFi protocols"):
@@ -308,6 +309,7 @@ class TestGroupAIOnboarding:
             text = call.kwargs.get("text", "") or (call.args[0] if call.args else "")
             if "推送时间" in str(text) or "push time" in str(text).lower():
                 found_time_selection = True
+            assert call.kwargs.get("message_thread_id") == 888
         assert found_time_selection, "Should show push time selection after profile confirm"
 
     @pytest.mark.asyncio
@@ -406,8 +408,9 @@ class TestGroupPushTimeAndLanguage:
         group_context.chat_data["full_profile"] = "[群组类型]\nDeFi 分析群\n[关注领域]\n- DeFi"
         group_context.chat_data["push_hour"] = 9
         group_context.chat_data["language"] = "zh"
+        group_context.chat_data["setup_message_thread_id"] = 777
         group_update.callback_query.data = "group_lang_zh"
-        group_update.callback_query.message.message_thread_id = 777
+        group_update.callback_query.message.message_thread_id = 123
 
         result = await handle_language_choice(group_update, group_context)
         assert result == ConversationHandler.END

@@ -68,6 +68,21 @@ def _get_message_thread_id(update: Update) -> Optional[int]:
     return None
 
 
+def _remember_setup_thread_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[int]:
+    """Persist the current setup topic/thread for the whole onboarding flow."""
+    thread_id = _get_message_thread_id(update)
+    context.chat_data["setup_message_thread_id"] = thread_id
+    return thread_id
+
+
+def _get_setup_thread_kwargs(context: ContextTypes.DEFAULT_TYPE) -> Dict[str, Any]:
+    """Return Telegram send kwargs for the currently bound setup topic."""
+    thread_id = context.chat_data.get("setup_message_thread_id")
+    if thread_id is None:
+        return {}
+    return {"message_thread_id": thread_id}
+
+
 def _get_group_config_path(group_id: str) -> str:
     """Get path to group config file."""
     from config import GROUP_CONFIGS_DIR
@@ -210,6 +225,7 @@ async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     # Track which admin started setup
     context.chat_data["setup_admin_id"] = update.effective_user.id
+    _remember_setup_thread_id(update, context)
 
     if existing:
         keyboard = [
@@ -245,6 +261,7 @@ async def _start_ai_onboarding(
     context.chat_data["conversation_history"] = []
     context.chat_data["current_round"] = 1
     context.chat_data["setup_admin_id"] = user.id
+    _remember_setup_thread_id(update, context)
 
     raw_code = getattr(user, "language_code", None) if user else None
     lang = normalize_language_code(raw_code) if raw_code else "en"
@@ -285,7 +302,8 @@ async def _start_ai_onboarding(
         if is_callback:
             await context.bot.send_message(
                 chat_id=chat.id, text=error_text,
-                reply_markup=InlineKeyboardMarkup(keyboard)
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                **_get_setup_thread_kwargs(context),
             )
         else:
             await update.message.reply_text(
@@ -303,6 +321,7 @@ async def _start_ai_onboarding(
              f"<i>{ui.get('group_reply_hint', 'Please REPLY to this message to respond (do not send a new message or @)')}</i>",
         parse_mode="HTML",
         reply_markup=ForceReply(selective=True),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_ONBOARD_R1
@@ -492,7 +511,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
     await context.bot.send_message(
         chat_id=chat.id,
         text=f"<i>{ui.get('saving_prefs', '⏳ Saving preferences...')}</i>",
-        parse_mode="HTML"
+        parse_mode="HTML",
+        **_get_setup_thread_kwargs(context),
     )
 
     profile_summary = context.chat_data.get("profile_summary", "")
@@ -519,7 +539,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_message(
             chat_id=chat.id,
             text=ui.get("error_occurred", "An error occurred. Please try again."),
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            **_get_setup_thread_kwargs(context),
         )
         return GROUP_CONFIRM_PROFILE
 
@@ -543,7 +564,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
         chat_id=chat.id,
         text=f"✅ {ui.get('group_profile_saved', 'Group profile saved!')}\n\n"
              f"{ui['group_select_push_time']}",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_PUSH_TIME
@@ -585,6 +607,7 @@ async def handle_adjust_profile_prompt(update: Update, context: ContextTypes.DEF
         chat_id=chat.id,
         text=f"{ui.get('adjust_profile_hint', 'Type your adjustment request:')}",
         reply_markup=ForceReply(selective=True),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_ADJUST
@@ -710,7 +733,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     lang = query.data.replace("group_lang_", "")
     chat = update.effective_chat
     group_id = str(chat.id)
-    thread_id = _get_message_thread_id(update)
+    thread_id = context.chat_data.get("setup_message_thread_id")
 
     config = {
         "group_id": group_id,
