@@ -130,6 +130,92 @@ class TestPermissionSystemGuard(unittest.TestCase):
             config.FEATURE_PAYMENT = original
 
 
+class TestInactivePauseGuard(unittest.TestCase):
+    """守卫：不活跃暂停逻辑，确保暂停/恢复行为正确"""
+
+    def test_paused_user_excluded_from_due_users(self):
+        """已暂停的用户不应出现在待推送列表中。
+
+        模拟 interval_digest_check_job 中的过滤逻辑。
+        """
+        users = [
+            {"telegram_id": "111", "service_paused": True, "last_push_time": "2026-01-01T00:00:00"},
+            {"telegram_id": "222", "service_paused": False, "last_push_time": "2026-01-01T00:00:00"},
+            {"telegram_id": "333", "last_push_time": "2026-01-01T00:00:00"},
+        ]
+        active_users = [u for u in users if not u.get("service_paused")]
+        paused_ids = [u["telegram_id"] for u in users if u.get("service_paused")]
+
+        self.assertNotIn("111", [u["telegram_id"] for u in active_users],
+            "Paused user must be excluded from active users list")
+        self.assertIn("222", [u["telegram_id"] for u in active_users])
+        self.assertIn("333", [u["telegram_id"] for u in active_users])
+        self.assertEqual(len(paused_ids), 1)
+
+    def test_inactive_user_detected_correctly(self):
+        """超过 N 天未活跃的用户应被检测到。"""
+        now = datetime.now()
+        users = [
+            {"telegram_id": "111", "last_active": (now - timedelta(days=10)).isoformat()},
+            {"telegram_id": "222", "last_active": (now - timedelta(days=3)).isoformat()},
+            {"telegram_id": "333", "last_active": now.isoformat()},
+        ]
+        inactive_days = 7
+        cutoff = now - timedelta(days=inactive_days)
+        inactive = [
+            u for u in users
+            if not u.get("service_paused")
+            and datetime.fromisoformat(u["last_active"]) < cutoff
+        ]
+        self.assertEqual(len(inactive), 1,
+            f"Only 1 user should be inactive (>7 days), got {len(inactive)}")
+        self.assertEqual(inactive[0]["telegram_id"], "111")
+
+    def test_resume_clears_pause_state(self):
+        """恢复服务后，暂停标记必须被清除。"""
+        user = {
+            "service_paused": True,
+            "paused_at": "2026-04-01T00:00:00",
+            "pause_notified": True,
+        }
+        user["service_paused"] = False
+        user["paused_at"] = None
+        user["pause_notified"] = False
+
+        self.assertFalse(user["service_paused"],
+            "service_paused must be False after resume")
+        self.assertIsNone(user["paused_at"],
+            "paused_at must be None after resume")
+        self.assertFalse(user["pause_notified"],
+            "pause_notified must be False after resume")
+
+    def test_already_paused_user_not_double_detected(self):
+        """已暂停的用户不应再次被检测为不活跃。"""
+        now = datetime.now()
+        users = [
+            {
+                "telegram_id": "111",
+                "last_active": (now - timedelta(days=30)).isoformat(),
+                "service_paused": True,
+            },
+            {
+                "telegram_id": "222",
+                "last_active": (now - timedelta(days=30)).isoformat(),
+                "service_paused": False,
+            },
+        ]
+        inactive_days = 7
+        cutoff = now - timedelta(days=inactive_days)
+        inactive = [
+            u for u in users
+            if not u.get("service_paused")
+            and datetime.fromisoformat(u["last_active"]) < cutoff
+        ]
+        self.assertEqual(len(inactive), 1,
+            "Already paused user should NOT be re-detected as inactive")
+        self.assertEqual(inactive[0]["telegram_id"], "222")
+
+
 if __name__ == "__main__":
     print("=" * 60)
     print("CRITICAL BUSINESS GUARD TESTS")

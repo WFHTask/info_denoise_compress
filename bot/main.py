@@ -43,7 +43,7 @@ from config import (
 )
 from services.digest_processor import process_single_user
 from utils.telegram_utils import safe_answer_callback_query
-from utils.json_storage import get_user_language
+from utils.json_storage import get_user_language, update_user_activity
 from locales.ui_strings import get_ui_locale
 from handlers.start import get_start_handler, get_start_callbacks
 from handlers.feedback import get_feedback_handlers
@@ -279,12 +279,55 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             logger.debug("No users registered, skipping interval check")
             return
 
+        # === Inactivity check: detect and pause inactive users ===
+        from utils.json_storage import (
+            get_system_config, get_inactive_users, pause_user_service,
+            mark_pause_notified, is_user_paused, track_event
+        )
+        from handlers.admin import DEFAULT_INACTIVE_PAUSE_DAYS
+
+        inactive_pause_days = get_system_config("inactive_pause_days", DEFAULT_INACTIVE_PAUSE_DAYS)
+        inactive_users = get_inactive_users(inactive_pause_days)
+
+        for inactive_user in inactive_users:
+            tid = inactive_user.get("telegram_id")
+            if not tid:
+                continue
+            pause_user_service(tid)
+            track_event(tid, "service_paused", {"reason": "inactivity", "days": inactive_pause_days})
+
+            if not inactive_user.get("pause_notified"):
+                try:
+                    lang = get_user_language(tid)
+                    from locales.ui_strings import get_ui_locale as _gui
+                    ui = _gui(lang)
+                    pause_text = (
+                        f"⏸️ {inactive_user.get('first_name', '')}，你的信息摘要推送已暂停\n\n"
+                        f"由于你已连续 {inactive_pause_days} 天没有查看或互动，"
+                        f"我们暂时停止了推送以节省资源。\n\n"
+                        f"如果你想继续接收每日信息摘要，请点击下方按钮恢复服务 👇"
+                    )
+                    pause_keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("✅ 恢复服务", callback_data="resume_service")],
+                    ])
+                    await context.bot.send_message(
+                        chat_id=int(tid), text=pause_text, reply_markup=pause_keyboard
+                    )
+                    mark_pause_notified(tid)
+                    logger.info(f"Sent pause notification to {tid}")
+                except Exception as e:
+                    logger.warning(f"Failed to send pause notification to {tid}: {e}")
+
         # Find users who are due for push (Pro: shorter interval, Free: 24h)
         due_users = []
 
         for user in users:
             telegram_id = user.get("telegram_id")
             if not telegram_id:
+                continue
+
+            # Skip paused users
+            if user.get("service_paused"):
                 continue
 
             # CRITICAL: 推送间隔判定 — 不可使用 check_feature()
@@ -588,6 +631,7 @@ async def test_prefetch_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command."""
     telegram_id = str(update.effective_user.id)
+    update_user_activity(telegram_id)
     lang = get_user_language(telegram_id)
     ui = get_ui_locale(lang)
     
@@ -644,6 +688,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle /stats command - show user statistics."""
     from services.profile_updater import analyze_feedback_trends
     from utils.json_storage import get_user
+    update_user_activity(str(update.effective_user.id))
 
     def _translate_trend(trend: str) -> str:
         """Translate trend text to Chinese."""
@@ -1233,6 +1278,7 @@ async def handle_unmatched_private_text(update: Update, context: ContextTypes.DE
     except Exception as e:
         logger.error(f"Failed to save user message: {e}")
 
+    update_user_activity(telegram_id)
     logger.info(f"Saved private text from {telegram_id}: {text[:80]}")
 
     # Rate-limited reply
@@ -1258,6 +1304,35 @@ async def handle_unmatched_private_text(update: Update, context: ContextTypes.DE
         InlineKeyboardButton(ui.get("settings_title", "设置"), callback_data="update_preferences"),
     ]]
     await update.message.reply_text(guide, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
+async def resume_service_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle resume_service callback — user clicks to reactivate their paused service."""
+    from utils.json_storage import resume_user_service, track_event
+
+    query = update.callback_query
+    user = query.from_user
+    telegram_id = str(user.id)
+
+    resume_user_service(telegram_id)
+    track_event(telegram_id, "service_resumed")
+
+    lang = get_user_language(telegram_id)
+    ui = get_ui_locale(lang)
+
+    await safe_answer_callback_query(query, "✅ 服务已恢复", show_alert=True)
+
+    try:
+        await query.edit_message_text(
+            f"✅ 欢迎回来，{user.first_name}！\n\n"
+            f"你的信息摘要推送已恢复。\n"
+            f"下次推送将按照正常周期自动送达。\n\n"
+            f"使用 /start 查看主菜单。"
+        )
+    except Exception:
+        pass
+
+    logger.info(f"User {telegram_id} resumed service")
 
 
 async def noop_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1432,6 +1507,9 @@ def main() -> None:
         )
 
     application.add_handler(CallbackQueryHandler(group_setup_guide_callback, pattern="^group_setup_guide$"))
+
+    # Resume service callback (user reactivates paused service)
+    application.add_handler(CallbackQueryHandler(resume_service_callback, pattern="^resume_service$"))
 
     # Callback for help from unknown message
     application.add_handler(CallbackQueryHandler(show_help_callback, pattern="^show_help$"))

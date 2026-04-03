@@ -217,6 +217,79 @@ def update_user_activity(telegram_id: str) -> None:
             break
 
 
+def pause_user_service(telegram_id: str) -> bool:
+    """Pause a user's digest service due to inactivity."""
+    data = _read_json(USERS_FILE)
+    for user in data.get("users", []):
+        if user.get("telegram_id") == telegram_id:
+            user["service_paused"] = True
+            user["paused_at"] = datetime.now().isoformat()
+            result = _write_json(USERS_FILE, data)
+            if result:
+                logger.info(f"Paused service for user {telegram_id}")
+            return result
+    return False
+
+
+def resume_user_service(telegram_id: str) -> bool:
+    """Resume a user's paused digest service (user clicked 'resume')."""
+    data = _read_json(USERS_FILE)
+    for user in data.get("users", []):
+        if user.get("telegram_id") == telegram_id:
+            user["service_paused"] = False
+            user["paused_at"] = None
+            user["pause_notified"] = False
+            user["last_active"] = datetime.now().isoformat()
+            result = _write_json(USERS_FILE, data)
+            if result:
+                logger.info(f"Resumed service for user {telegram_id}")
+            return result
+    return False
+
+
+def is_user_paused(telegram_id: str) -> bool:
+    """Check if a user's service is paused."""
+    user = get_user(telegram_id)
+    if not user:
+        return False
+    return user.get("service_paused", False)
+
+
+def mark_pause_notified(telegram_id: str) -> bool:
+    """Mark that the pause notification has been sent to the user."""
+    data = _read_json(USERS_FILE)
+    for user in data.get("users", []):
+        if user.get("telegram_id") == telegram_id:
+            user["pause_notified"] = True
+            return _write_json(USERS_FILE, data)
+    return False
+
+
+def get_inactive_users(inactive_days: int) -> list:
+    """Get users who have been inactive for more than inactive_days.
+
+    Returns list of user dicts that:
+    - Are NOT already paused
+    - Have last_active older than inactive_days ago
+    """
+    users = get_users()
+    cutoff = datetime.now() - timedelta(days=inactive_days)
+    inactive = []
+    for user in users:
+        if user.get("service_paused"):
+            continue
+        last_active_str = user.get("last_active") or user.get("created")
+        if not last_active_str:
+            continue
+        try:
+            last_active = datetime.fromisoformat(last_active_str)
+            if last_active < cutoff:
+                inactive.append(user)
+        except (ValueError, TypeError):
+            continue
+    return inactive
+
+
 def get_user_language(telegram_id: str) -> str:
     """Get user's language setting.
     
