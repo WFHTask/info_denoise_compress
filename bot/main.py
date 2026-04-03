@@ -1310,21 +1310,61 @@ async def resume_service_callback(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     user = query.from_user
     telegram_id = str(user.id)
+    lang = get_user_language(telegram_id)
 
     resume_user_service(telegram_id)
     track_event(telegram_id, "service_resumed")
 
-    await safe_answer_callback_query(query, "✅ 服务已恢复", show_alert=True)
-
-    try:
-        await query.edit_message_text(
+    alert_text = {
+        "zh": "✅ 已恢复接收",
+        "en": "✅ Delivery resumed",
+        "ja": "✅ 配信を再開しました",
+        "ko": "✅ 수신이 다시 시작되었습니다",
+    }.get(lang, "✅ Delivery resumed")
+    restored_text = {
+        "zh": (
             f"✅ 欢迎回来，{user.first_name}！\n\n"
             f"你的信息摘要推送已恢复。\n"
             f"下次推送将按照正常周期自动送达。\n\n"
             f"使用 /start 查看主菜单。"
-        )
-    except Exception:
-        pass
+        ),
+        "en": (
+            f"✅ Welcome back, {user.first_name}!\n\n"
+            f"Your digest delivery has been restored.\n"
+            f"The next digest will arrive on the normal schedule.\n\n"
+            f"Use /start to open the main menu."
+        ),
+        "ja": (
+            f"✅ おかえりなさい、{user.first_name}さん！\n\n"
+            f"ダイジェスト配信を再開しました。\n"
+            f"次回から通常の周期で届きます。\n\n"
+            f"/start でメインメニューを開けます。"
+        ),
+        "ko": (
+            f"✅ 다시 오신 것을 환영합니다, {user.first_name}님!\n\n"
+            f"다이제스트 수신이 다시 활성화되었습니다.\n"
+            f"다음부터는 정상 주기로 받아보실 수 있습니다.\n\n"
+            f"/start 로 메인 메뉴를 열 수 있습니다."
+        ),
+    }.get(lang, "")
+    follow_up_text = {
+        "zh": "✅ 已为你恢复信息摘要服务，后续会按正常周期继续推送。",
+        "en": "✅ Your digest service has been restored and will continue on the normal schedule.",
+        "ja": "✅ ダイジェスト配信を再開しました。以降は通常の周期でお届けします。",
+        "ko": "✅ 다이제스트 서비스가 복구되었습니다. 이후부터는 정상 주기로 발송됩니다.",
+    }.get(lang, "✅ Your digest service has been restored.")
+
+    await safe_answer_callback_query(query, alert_text, show_alert=True)
+
+    try:
+        await query.edit_message_text(restored_text)
+    except Exception as exc:
+        logger.warning(f"Failed to edit resume confirmation message for {telegram_id}: {exc}")
+
+    try:
+        await context.bot.send_message(chat_id=int(telegram_id), text=follow_up_text)
+    except Exception as exc:
+        logger.warning(f"Failed to send follow-up resume confirmation to {telegram_id}: {exc}")
 
     logger.info(f"User {telegram_id} resumed service")
 
