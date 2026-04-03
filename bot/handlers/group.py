@@ -345,7 +345,6 @@ async def handle_onboard_r1(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     chat = update.effective_chat
 
     # Detect language from admin's reply
-    lang_before = context.chat_data.get("language", "en")
     detected_lang = detect_language_from_text(user_message)
     if detected_lang and is_supported_language(detected_lang):
         context.chat_data["language"] = detected_lang
@@ -702,8 +701,6 @@ async def handle_push_time(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     hour = int(query.data.replace("group_time_", ""))
     context.chat_data["push_hour"] = hour
 
-    chat = update.effective_chat
-    group_id = str(chat.id) if chat else None
     lang = context.chat_data.get("language", "en")
     ui = get_ui_locale(lang)
 
@@ -840,8 +837,6 @@ async def handle_group_disable(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def handle_group_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start AI-driven update flow (restart onboarding)."""
-    query = update.callback_query
-
     if not _is_setup_admin(update, context):
         if update.effective_user:
             context.chat_data["setup_admin_id"] = update.effective_user.id

@@ -51,12 +51,8 @@ def tmp_data_dir(tmp_path, monkeypatch):
     monkeypatch.setattr("config.WHITELIST_SETTINGS_FILE", str(data_dir / "whitelist_settings.json"))
 
     try:
-        monkeypatch.setattr(storage, "SYSTEM_CONFIG_FILE", str(data_dir / "system_config.json"))
-    except Exception:
-        pass
-
-    try:
         import utils.json_storage as storage
+        monkeypatch.setattr(storage, "SYSTEM_CONFIG_FILE", str(data_dir / "system_config.json"))
         monkeypatch.setattr(storage, "DATA_DIR", str(data_dir))
         monkeypatch.setattr(storage, "USERS_FILE", str(data_dir / "users.json"))
         monkeypatch.setattr(storage, "PROFILES_DIR", str(data_dir / "profiles"))

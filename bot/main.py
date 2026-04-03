@@ -298,9 +298,6 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
 
             if not inactive_user.get("pause_notified"):
                 try:
-                    lang = get_user_language(tid)
-                    from locales.ui_strings import get_ui_locale as _gui
-                    ui = _gui(lang)
                     pause_text = (
                         f"⏸️ {inactive_user.get('first_name', '')}，你的信息摘要推送已暂停\n\n"
                         f"由于你已连续 {inactive_pause_days} 天没有查看或互动，"
@@ -1316,9 +1313,6 @@ async def resume_service_callback(update: Update, context: ContextTypes.DEFAULT_
 
     resume_user_service(telegram_id)
     track_event(telegram_id, "service_resumed")
-
-    lang = get_user_language(telegram_id)
-    ui = get_ui_locale(lang)
 
     await safe_answer_callback_query(query, "✅ 服务已恢复", show_alert=True)
 
