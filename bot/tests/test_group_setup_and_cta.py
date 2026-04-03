@@ -7,11 +7,13 @@ Tests for:
 
 Run with: python -m pytest tests/test_group_setup_and_cta.py -v
 """
+import importlib
 import json
 import os
 import sys
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -293,6 +295,7 @@ class TestGroupAIOnboarding:
         ]
         group_context.chat_data["language"] = "zh"
         group_context.chat_data["language_native"] = "Chinese"
+        group_context.chat_data["setup_message_thread_id"] = 888
 
         with patch("handlers.group.call_gemini", new_callable=AsyncMock,
                     return_value="[群组类型]\nDeFi 深度分析群\n[关注领域]\n- DeFi protocols"):
@@ -306,6 +309,7 @@ class TestGroupAIOnboarding:
             text = call.kwargs.get("text", "") or (call.args[0] if call.args else "")
             if "推送时间" in str(text) or "push time" in str(text).lower():
                 found_time_selection = True
+            assert call.kwargs.get("message_thread_id") == 888
         assert found_time_selection, "Should show push time selection after profile confirm"
 
     @pytest.mark.asyncio
@@ -404,7 +408,9 @@ class TestGroupPushTimeAndLanguage:
         group_context.chat_data["full_profile"] = "[群组类型]\nDeFi 分析群\n[关注领域]\n- DeFi"
         group_context.chat_data["push_hour"] = 9
         group_context.chat_data["language"] = "zh"
+        group_context.chat_data["setup_message_thread_id"] = 777
         group_update.callback_query.data = "group_lang_zh"
+        group_update.callback_query.message.message_thread_id = 123
 
         result = await handle_language_choice(group_update, group_context)
         assert result == ConversationHandler.END
@@ -415,6 +421,7 @@ class TestGroupPushTimeAndLanguage:
         assert saved["push_hour"] == 9
         assert saved["language"] == "zh"
         assert saved["enabled"] is True
+        assert saved["message_thread_id"] == 777
         assert "[群组类型]" in saved["profile"]
 
     @pytest.mark.asyncio
@@ -553,6 +560,45 @@ class TestGroupViewDisable:
 
         config = load_group_config(group_id)
         assert config["enabled"] is False
+
+
+class TestGroupTopicBinding:
+    """Test binding group push to the setup topic/thread."""
+
+    @pytest.mark.asyncio
+    async def test_group_digest_push_job_sends_to_bound_topic(self):
+        """TC-F1-28: Bound topic id is passed to Telegram send_message."""
+        with patch("logging.handlers.TimedRotatingFileHandler", return_value=MagicMock()):
+            if "main" in sys.modules:
+                del sys.modules["main"]
+            group_digest_push_job = importlib.import_module("main").group_digest_push_job
+
+        beijing_hour = datetime.now(ZoneInfo("Asia/Shanghai")).hour
+        config = {
+            "group_id": "-10012345",
+            "push_hour": beijing_hour,
+            "profile": "General Web3",
+            "language": "zh",
+            "message_thread_id": 777,
+            "last_push_date": "1900-01-01",
+        }
+
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.send_message = AsyncMock()
+
+        with patch("handlers.group.get_all_group_configs", return_value=[config]):
+            with patch("services.rss_fetcher.fetch_all_sources", new_callable=AsyncMock, return_value=[{"id": "1"}]):
+                with patch("services.digest_processor.generate_group_digest", new_callable=AsyncMock, return_value="digest"):
+                    with patch("services.report_generator.split_report_for_telegram", return_value=["part-1"]):
+                        with patch("utils.json_storage.get_system_config", return_value="CTA-TEST"):
+                            with patch("handlers.group.save_group_config"):
+                                await group_digest_push_job(ctx)
+
+        send_kwargs = ctx.bot.send_message.await_args.kwargs
+        assert send_kwargs["chat_id"] == "-10012345"
+        assert send_kwargs["message_thread_id"] == 777
+        assert "CTA-TEST" in send_kwargs["text"]
 
 
 # ============ Feature 2: Admin CTA Configuration ============

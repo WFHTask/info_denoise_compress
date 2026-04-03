@@ -19,7 +19,7 @@ call_gemini_with_search() with LLM_PROVIDER=openai, it will raise NotImplemented
 import logging
 from typing import Optional, Tuple
 
-from .llm_factory import LLMFactory
+from .llm_factory import LLMFactory, call_llm_text, call_llm_json
 
 logger = logging.getLogger(__name__)
 
@@ -33,67 +33,40 @@ async def call_gemini(
     prompt: str,
     system_instruction: Optional[str] = None,
     temperature: float = 1.0,
+    context: str = "call_gemini",
 ) -> str:
     """
-    Generate content using the configured LLM provider.
-
-    This is a backward compatibility function. It internally routes to either
-    GeminiProvider or OpenAIProvider based on the LLM_PROVIDER environment variable.
-
-    Args:
-        prompt: User prompt
-        system_instruction: Optional system context
-        temperature: Sampling temperature (default 1.0)
-
-    Returns:
-        Generated text
-
-    Raises:
-        LLMAuthError: If API key is invalid
-        LLMRateLimitError: If rate limit is exceeded
-        LLMTimeoutError: If request times out
+    Generate content using the full LLM provider chain with automatic fallback.
     """
-    provider = _get_provider()
-    response = await provider.generate_text(
+    result, used = await call_llm_text(
         prompt=prompt,
-        system_instruction=system_instruction,
+        system_instruction=system_instruction or "",
         temperature=temperature,
-        max_tokens=8192
+        context=context,
     )
-    return response.content
+    if result is None:
+        raise RuntimeError(f"All LLM providers failed (context={context})")
+    return result
 
 
 async def call_gemini_json(
     prompt: str,
     system_instruction: Optional[str] = None,
     temperature: float = 1.0,
+    context: str = "call_gemini_json",
 ) -> dict:
     """
-    Generate JSON-structured content using the configured LLM provider.
-
-    This is a backward compatibility function. Both Gemini and OpenAI support
-    JSON mode, so this works regardless of which provider is configured.
-
-    Args:
-        prompt: User prompt
-        system_instruction: Optional system context
-        temperature: Sampling temperature (default 1.0)
-
-    Returns:
-        Parsed JSON dict
-
-    Raises:
-        LLMAuthError: If API key is invalid
-        LLMRateLimitError: If rate limit is exceeded
-        LLMTimeoutError: If request times out
-        json.JSONDecodeError: If response is not valid JSON
+    Generate JSON-structured content using the full LLM provider chain with automatic fallback.
     """
-    provider = _get_provider()
-    return await provider.generate_json(
+    result, used = await call_llm_json(
         prompt=prompt,
-        system_instruction=system_instruction,
-        temperature=temperature
+        system_instruction=system_instruction or "",
+        temperature=temperature,
+        context=context,
     )
+    if result is None:
+        raise RuntimeError(f"All LLM providers failed (context={context})")
+    return result
 
 
 async def call_gemini_with_thoughts(
@@ -104,34 +77,25 @@ async def call_gemini_with_thoughts(
     """
     Generate content and return thinking process.
 
-    This is a backward compatibility function.
-
-    Note: OpenAI does not support native thinking mode like Gemini 3 Pro.
-    When using OpenAI provider, the thinking field will be an empty string.
-
-    Args:
-        prompt: User prompt
-        system_instruction: Optional system context
-        temperature: Sampling temperature (default 1.0)
-
-    Returns:
-        Tuple of (response, thoughts)
-        - If using Gemini: Both response and thoughts will be populated
-        - If using OpenAI: thoughts will be empty string
-
-    Raises:
-        LLMAuthError: If API key is invalid
-        LLMRateLimitError: If rate limit is exceeded
-        LLMTimeoutError: If request times out
+    Note: Fallback chain is used. Thinking data is only available from Gemini;
+    other providers return empty string for the thinking field.
     """
-    provider = _get_provider()
-    response = await provider.generate_text(
-        prompt=prompt,
-        system_instruction=system_instruction,
-        temperature=temperature,
-        max_tokens=8192
-    )
-    return response.content, response.thinking or ""
+    # Thinking requires direct provider call (chain doesn't propagate thinking field)
+    # Try primary first, fall back to chain for content-only
+    try:
+        provider = _get_provider()
+        response = await provider.generate_text(
+            prompt=prompt,
+            system_instruction=system_instruction,
+            temperature=temperature,
+            max_tokens=8192
+        )
+        return response.content, response.thinking or ""
+    except Exception as e:
+        logger.warning(f"Primary provider failed for thinking call: {e}, falling back to chain")
+        result = await call_gemini(prompt=prompt, system_instruction=system_instruction,
+                                    temperature=temperature, context="call_gemini_with_thoughts")
+        return result, ""
 
 
 async def call_gemini_with_search(

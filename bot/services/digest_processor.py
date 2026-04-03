@@ -5,6 +5,8 @@ This module is separated to avoid circular imports between main.py and handlers/
 """
 
 import logging
+import html
+import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
@@ -35,14 +37,14 @@ async def process_single_user(
         Dict with status info: {"user": telegram_id, "status": "success|error", ...}
     """
     from services.rss_fetcher import fetch_user_sources, get_user_source_list
-    from services.content_filter import filter_and_translate_for_user, get_ai_summary, translate_text, translate_content, get_user_target_language
+    from services.content_filter import filter_and_translate_for_user, get_ai_summary, translate_text, translate_content
     from services.report_generator import (
         generate_empty_report,
-        detect_user_language,
         prepare_digest_messages,
         get_translation_language,
         get_locale,
     )
+    from services.language_service import get_user_language
     from utils.json_storage import (
         get_user_profile,
         save_user_raw_content,
@@ -167,9 +169,9 @@ async def process_single_user(
         # Save raw content for this user
         save_user_raw_content(telegram_id, today, raw_content, user_id=user_id)
 
-        # Get user profile for language detection
+        # Get user profile for AI content filtering
         profile = get_user_profile(telegram_id) or ""
-        user_lang = detect_user_language(profile)
+        user_lang = get_user_language(telegram_id)
 
         # 2. Filter content for user (filtering only, no translation)
         filtered_items = await filter_and_translate_for_user(
@@ -311,3 +313,189 @@ async def process_single_user(
             "status": "error",
             "error": str(e)[:100]
         }
+
+
+async def generate_group_digest(
+    raw_content: List[Dict[str, Any]],
+    profile: str,
+    language: str
+) -> str:
+    """
+    Generate a group digest using AI filtering and summary.
+
+    Output is Telegram HTML format and keeps original links in each item.
+    """
+    from services.llm_factory import call_llm_json
+    from services.content_filter import get_ai_summary, translate_content, translate_text, smart_truncate
+    from services.report_generator import (
+        get_locale,
+        get_category_names,
+        DIVIDER_HEAVY,
+        DIVIDER_LIGHT,
+        SEPARATOR_LENGTH,
+    )
+    from config import MAX_DIGEST_ITEMS
+
+    locale_lang = language if language in ("zh", "en", "ja", "ko") else "en"
+    locale = get_locale(locale_lang)
+    category_names = get_category_names(locale_lang)
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
+    if not raw_content:
+        return (
+            f"<b>{locale['title']}</b>\n"
+            f"{date_str}\n"
+            f"{DIVIDER_HEAVY * SEPARATOR_LENGTH}\n\n"
+            f"{locale['no_content']}"
+        )
+
+    index_map: Dict[int, Dict[str, Any]] = {}
+    content_for_ai: List[Dict[str, Any]] = []
+
+    for i, item in enumerate(raw_content, 1):
+        index_map[i] = item
+        title = (item.get("title") or "").strip()
+        summary = (item.get("summary") or "").strip()
+        merged_text = f"{title} | {summary}" if summary and summary not in title else (title or summary)
+        content_for_ai.append({
+            "n": i,
+            "src": item.get("source", "Unknown"),
+            "t": smart_truncate(merged_text, 300),
+        })
+
+    system_instruction = (
+        "You are a Web3 group digest editor.\n"
+        "Given a group profile and content list, select high-value items only.\n"
+        "Return JSON object only with keys: must_read, macro_insights, recommended, other.\n"
+        "Each item format: {\"n\": <index>, \"r\": <short recommendation reason>}.\n"
+        "Rules:\n"
+        "- put market/protocol critical updates into must_read\n"
+        "- put trend/context information into macro_insights\n"
+        "- put profile-matching updates into recommended\n"
+        "- keep less-important leftovers in other\n"
+        f"- total selected count in [6, {MAX_DIGEST_ITEMS}] when possible\n"
+    )
+    prompt = (
+        f"Group profile:\n{profile or 'General Web3 news'}\n\n"
+        f"Output language code target: {language}\n\n"
+        f"Content items ({len(content_for_ai)}):\n"
+        f"{json.dumps(content_for_ai, ensure_ascii=False)}\n\n"
+        "Return valid JSON only."
+    )
+
+    filtered_result, _model = await call_llm_json(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        context="group-digest-filter",
+    )
+
+    selected_items: List[Dict[str, Any]] = []
+    if isinstance(filtered_result, dict):
+        for section in ["must_read", "macro_insights", "recommended", "other"]:
+            for ai_item in filtered_result.get(section, []):
+                n = ai_item.get("n")
+                if not n or n not in index_map:
+                    continue
+                original = index_map[n]
+                selected_items.append({
+                    "id": original.get("id", f"group_item_{n}"),
+                    "title": original.get("title", "Untitled"),
+                    "summary": smart_truncate(original.get("summary", "") or "", 220),
+                    "source": original.get("source", "Unknown"),
+                    "link": original.get("link", ""),
+                    "section": section,
+                    "reason": ai_item.get("r", ""),
+                    "author": original.get("author", ""),
+                })
+
+    # Fallback when AI output is unavailable or malformed
+    if not selected_items:
+        selected_items = [
+            {
+                "id": item.get("id", f"group_fallback_{idx}"),
+                "title": item.get("title", "Untitled"),
+                "summary": smart_truncate(item.get("summary", "") or "", 220),
+                "source": item.get("source", "Unknown"),
+                "link": item.get("link", ""),
+                "section": "other",
+                "reason": "Fallback: AI unavailable",
+                "author": item.get("author", ""),
+            }
+            for idx, item in enumerate(raw_content[:MAX_DIGEST_ITEMS], 1)
+        ]
+
+    # Keep stable order and remove duplicates by link/title
+    deduped_items: List[Dict[str, Any]] = []
+    seen_keys = set()
+    for item in selected_items:
+        dedup_key = (item.get("link") or "").strip() or (item.get("title") or "").strip().lower()
+        if not dedup_key or dedup_key in seen_keys:
+            continue
+        seen_keys.add(dedup_key)
+        deduped_items.append(item)
+    selected_items = deduped_items[:MAX_DIGEST_ITEMS]
+
+    ai_summary = await get_ai_summary(selected_items, profile or "General Web3 news")
+
+    # Final translation for output
+    target_lang_map = {
+        "zh": "Chinese",
+        "en": "English",
+        "ja": "Japanese",
+        "ko": "Korean",
+    }
+    target_language = target_lang_map.get(locale_lang, "English")
+    if target_language != "English":
+        selected_items = await translate_content(selected_items, target_language)
+        ai_summary = await translate_text(ai_summary, target_language)
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {
+        "must_read": [],
+        "macro_insights": [],
+        "recommended": [],
+        "other": [],
+    }
+    for item in selected_items:
+        section = item.get("section", "other")
+        if section not in grouped:
+            section = "other"
+        grouped[section].append(item)
+
+    lines = [
+        f"<b>{locale['title']}</b>",
+        date_str,
+        DIVIDER_HEAVY * SEPARATOR_LENGTH,
+        "",
+        html.escape(ai_summary),
+        "",
+        DIVIDER_LIGHT * SEPARATOR_LENGTH,
+        "",
+    ]
+
+    for section in ["must_read", "macro_insights", "recommended", "other"]:
+        items = grouped.get(section, [])
+        if not items:
+            continue
+        section_name = category_names.get(section, section)
+        lines.append(f"<b>{section_name}</b>")
+        lines.append("")
+
+        for item in items:
+            title = html.escape(item.get("title", "Untitled"))
+            summary = html.escape(item.get("summary", "") or "")
+            source = html.escape(item.get("source", "") or "")
+            link = (item.get("link", "") or "").strip()
+
+            if link:
+                safe_link = html.escape(link, quote=True)
+                lines.append(f'• <a href="{safe_link}">{title}</a>')
+            else:
+                lines.append(f"• {title}")
+
+            if summary:
+                lines.append(f"  {summary}")
+            if source:
+                lines.append(f"  <i>{source}</i>")
+            lines.append("")
+
+    return "\n".join(lines).strip()

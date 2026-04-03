@@ -17,7 +17,14 @@ from datetime import time, datetime, timedelta
 from typing import Dict, Any
 from zoneinfo import ZoneInfo
 
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import (
+    BotCommand,
+    BotCommandScopeAllGroupChats,
+    BotCommandScopeAllPrivateChats,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -36,7 +43,7 @@ from config import (
 )
 from services.digest_processor import process_single_user
 from utils.telegram_utils import safe_answer_callback_query
-from utils.json_storage import get_user_language
+from utils.json_storage import get_user_language, update_user_activity
 from locales.ui_strings import get_ui_locale
 from handlers.start import get_start_handler, get_start_callbacks
 from handlers.feedback import get_feedback_handlers
@@ -272,6 +279,42 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             logger.debug("No users registered, skipping interval check")
             return
 
+        # === Inactivity check: detect and pause inactive users ===
+        from utils.json_storage import (
+            get_system_config, get_inactive_users, pause_user_service,
+            mark_pause_notified, is_user_paused, track_event
+        )
+        from handlers.admin import DEFAULT_INACTIVE_PAUSE_DAYS
+
+        inactive_pause_days = get_system_config("inactive_pause_days", DEFAULT_INACTIVE_PAUSE_DAYS)
+        inactive_users = get_inactive_users(inactive_pause_days)
+
+        for inactive_user in inactive_users:
+            tid = inactive_user.get("telegram_id")
+            if not tid:
+                continue
+            pause_user_service(tid)
+            track_event(tid, "service_paused", {"reason": "inactivity", "days": inactive_pause_days})
+
+            if not inactive_user.get("pause_notified"):
+                try:
+                    pause_text = (
+                        f"⏸️ {inactive_user.get('first_name', '')}，你的信息摘要推送已暂停\n\n"
+                        f"由于你已连续 {inactive_pause_days} 天没有查看或互动，"
+                        f"我们暂时停止了推送以节省资源。\n\n"
+                        f"如果你想继续接收每日信息摘要，请点击下方按钮恢复服务 👇"
+                    )
+                    pause_keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("✅ 恢复服务", callback_data="resume_service")],
+                    ])
+                    await context.bot.send_message(
+                        chat_id=int(tid), text=pause_text, reply_markup=pause_keyboard
+                    )
+                    mark_pause_notified(tid)
+                    logger.info(f"Sent pause notification to {tid}")
+                except Exception as e:
+                    logger.warning(f"Failed to send pause notification to {tid}: {e}")
+
         # Find users who are due for push (Pro: shorter interval, Free: 24h)
         due_users = []
 
@@ -280,7 +323,14 @@ async def interval_digest_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             if not telegram_id:
                 continue
 
-            # Determine if user is truly Pro (only when payment system is on)
+            # Skip paused users
+            if user.get("service_paused"):
+                continue
+
+            # CRITICAL: 推送间隔判定 — 不可使用 check_feature()
+            # check_feature() 在 FEATURE_PAYMENT=false 时对所有人返回 True，
+            # 会导致全员被当作 Pro (1h间隔) 高频推送。
+            # 事故记录: 2026-02-23, 2026-03-05。守卫测试: test_critical_guards.py
             from config import FEATURE_PAYMENT
             if FEATURE_PAYMENT:
                 is_pro = check_feature(telegram_id, "priority_push")
@@ -578,6 +628,7 @@ async def test_prefetch_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command."""
     telegram_id = str(update.effective_user.id)
+    update_user_activity(telegram_id)
     lang = get_user_language(telegram_id)
     ui = get_ui_locale(lang)
     
@@ -634,6 +685,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle /stats command - show user statistics."""
     from services.profile_updater import analyze_feedback_trends
     from utils.json_storage import get_user
+    update_user_activity(str(update.effective_user.id))
 
     def _translate_trend(trend: str) -> str:
         """Translate trend text to Chinese."""
@@ -696,52 +748,76 @@ async def post_init(application: Application) -> None:
     from config import resolve_default_sources_rss
     await resolve_default_sources_rss()
     
-    # Set bot commands menu (only show user-facing commands)
-    # Set bot commands menu for different languages
-    # Telegram will show the menu based on user's Telegram client language
-    
-    # Chinese (default)
-    commands_zh = [
+    # Set bot commands menu for private chats and groups separately.
+    # This exposes /setup in groups without cluttering private chat menus.
+    private_commands_zh = [
         BotCommand("start", "主菜单"),
         BotCommand("help", "帮助信息"),
         BotCommand("settings", "偏好设置"),
         BotCommand("sources", "信息源管理"),
         BotCommand("stats", "查看统计"),
     ]
-    await application.bot.set_my_commands(commands_zh)  # Default
-    await application.bot.set_my_commands(commands_zh, language_code="zh")
-    
-    # English
-    commands_en = [
+    await application.bot.set_my_commands(private_commands_zh)  # Default fallback
+    await application.bot.set_my_commands(private_commands_zh, scope=BotCommandScopeAllPrivateChats())
+    await application.bot.set_my_commands(private_commands_zh, scope=BotCommandScopeAllPrivateChats(), language_code="zh")
+
+    private_commands_en = [
         BotCommand("start", "Main Menu"),
         BotCommand("help", "Help"),
         BotCommand("settings", "Preferences"),
         BotCommand("sources", "Sources"),
         BotCommand("stats", "Statistics"),
     ]
-    await application.bot.set_my_commands(commands_en, language_code="en")
-    
-    # Japanese
-    commands_ja = [
+    await application.bot.set_my_commands(private_commands_en, scope=BotCommandScopeAllPrivateChats(), language_code="en")
+
+    private_commands_ja = [
         BotCommand("start", "メインメニュー"),
         BotCommand("help", "ヘルプ"),
         BotCommand("settings", "設定"),
         BotCommand("sources", "情報源"),
         BotCommand("stats", "統計"),
     ]
-    await application.bot.set_my_commands(commands_ja, language_code="ja")
-    
-    # Korean
-    commands_ko = [
+    await application.bot.set_my_commands(private_commands_ja, scope=BotCommandScopeAllPrivateChats(), language_code="ja")
+
+    private_commands_ko = [
         BotCommand("start", "메인 메뉴"),
         BotCommand("help", "도움말"),
         BotCommand("settings", "설정"),
         BotCommand("sources", "소스"),
         BotCommand("stats", "통계"),
     ]
-    await application.bot.set_my_commands(commands_ko, language_code="ko")
-    
-    logger.info("Bot commands menu set for zh/en/ja/ko languages")
+    await application.bot.set_my_commands(private_commands_ko, scope=BotCommandScopeAllPrivateChats(), language_code="ko")
+
+    group_commands_zh = [
+        BotCommand("setup", "配置群推送"),
+        BotCommand("help", "帮助信息"),
+        BotCommand("cancel", "取消当前操作"),
+    ]
+    await application.bot.set_my_commands(group_commands_zh, scope=BotCommandScopeAllGroupChats())
+    await application.bot.set_my_commands(group_commands_zh, scope=BotCommandScopeAllGroupChats(), language_code="zh")
+
+    group_commands_en = [
+        BotCommand("setup", "Configure group push"),
+        BotCommand("help", "Help"),
+        BotCommand("cancel", "Cancel current action"),
+    ]
+    await application.bot.set_my_commands(group_commands_en, scope=BotCommandScopeAllGroupChats(), language_code="en")
+
+    group_commands_ja = [
+        BotCommand("setup", "グループ配信を設定"),
+        BotCommand("help", "ヘルプ"),
+        BotCommand("cancel", "現在の操作をキャンセル"),
+    ]
+    await application.bot.set_my_commands(group_commands_ja, scope=BotCommandScopeAllGroupChats(), language_code="ja")
+
+    group_commands_ko = [
+        BotCommand("setup", "그룹 푸시 설정"),
+        BotCommand("help", "도움말"),
+        BotCommand("cancel", "현재 작업 취소"),
+    ]
+    await application.bot.set_my_commands(group_commands_ko, scope=BotCommandScopeAllGroupChats(), language_code="ko")
+
+    logger.info("Bot commands menu set for private/group chats in zh/en/ja/ko")
 
     # Get timezone for Beijing
     beijing_tz = ZoneInfo("Asia/Shanghai")
@@ -870,6 +946,64 @@ async def post_init(application: Application) -> None:
     else:
         logger.info("Prefetch disabled (PREFETCH_INTERVAL_HOURS=0)")
 
+    # Startup changelog notification check (async, non-blocking startup)
+    application.job_queue.run_once(
+        callback=startup_changelog_notify_job,
+        when=15,  # Execute shortly after boot
+        name="startup_changelog_notify",
+    )
+    logger.info("Scheduled startup changelog notification check in 15 seconds")
+
+
+async def startup_changelog_notify_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Check latest CHANGELOG version and notify subscribers on startup if version changed.
+    """
+    from scripts.send_changelog_update import parse_latest_changelog, send_latest_changelog_update
+    from utils.json_storage import get_system_config, set_system_config
+
+    logger.info("Running startup changelog notification check...")
+
+    try:
+        latest = parse_latest_changelog()
+        if not latest or not latest.get("version"):
+            logger.warning("Startup changelog check skipped: latest version not found")
+            return
+
+        latest_version = latest["version"]
+        last_notified_version = get_system_config("last_notified_version", "")
+
+        if latest_version == last_notified_version:
+            logger.info(f"No new changelog version to notify: {latest_version}")
+            return
+
+        logger.info(
+            f"New changelog detected on startup: latest={latest_version}, "
+            f"last_notified={last_notified_version or 'none'}"
+        )
+
+        result = await send_latest_changelog_update(dry_run=False)
+        if not result:
+            logger.error("Startup changelog notification failed: send result is empty")
+            return
+
+        if result.get("fail_count", 0) > 0:
+            logger.warning(
+                "Startup changelog notification had failures: "
+                f"{result.get('success_count', 0)} sent, {result.get('fail_count', 0)} failed. "
+                "Version marker will not be updated for retry on next startup."
+            )
+            return
+
+        set_ok = set_system_config("last_notified_version", latest_version)
+        if set_ok:
+            logger.info(f"Updated last_notified_version to {latest_version}")
+        else:
+            logger.warning(f"Failed to persist last_notified_version={latest_version}")
+
+    except Exception as e:
+        logger.error(f"Startup changelog notification check failed: {e}", exc_info=True)
+
 
 async def profile_update_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Scheduled job to update user profiles based on feedback."""
@@ -944,6 +1078,8 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     from handlers.group import get_all_group_configs
     from services.rss_fetcher import fetch_all_sources
+    from services.digest_processor import generate_group_digest
+    from services.report_generator import split_report_for_telegram
 
     beijing_tz = ZoneInfo("Asia/Shanghai")
     current_hour = datetime.now(beijing_tz).hour
@@ -972,19 +1108,14 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                 # Generate and send group digest
                 profile = group_config.get("profile", "Web3 general news")
                 language = group_config.get("language", "zh")
+                thread_id = group_config.get("message_thread_id")
 
                 # Fetch public sources
                 raw_content = await fetch_all_sources(hours_back=24)
                 if not raw_content:
                     continue
 
-                # Try to generate group digest, fall back to simple notification
-                try:
-                    from services.digest_processor import generate_group_digest
-                    digest_text = await generate_group_digest(raw_content, profile, language)
-                except (ImportError, AttributeError):
-                    # generate_group_digest not yet implemented, send simple summary
-                    digest_text = f"📰 Web3 每日简报\n📅 {today}\n\n今日共收集 {len(raw_content)} 条信息。\n使用 /start 私聊 Bot 获取个性化推荐。"
+                digest_text = await generate_group_digest(raw_content, profile, language)
 
                 # Read admin-configured CTA (falls back to default)
                 from utils.json_storage import get_system_config
@@ -996,19 +1127,35 @@ async def group_digest_push_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                     "━━━━━━━━━━━━━━━━━━━━━"
                 )
 
-                await context.bot.send_message(
-                    chat_id=group_id,
-                    text=digest_text + footer,
-                    parse_mode="HTML",
-                    disable_web_page_preview=True,
-                )
+                digest_chunks = split_report_for_telegram(digest_text, max_length=3900)
+                if digest_chunks:
+                    digest_chunks[-1] = digest_chunks[-1] + footer
+                else:
+                    digest_chunks = [footer.strip()]
+
+                for chunk in digest_chunks:
+                    send_kwargs = {
+                        "chat_id": group_id,
+                        "text": chunk,
+                        "parse_mode": "HTML",
+                        "disable_web_page_preview": True,
+                    }
+                    if thread_id is not None:
+                        send_kwargs["message_thread_id"] = thread_id
+
+                    await context.bot.send_message(
+                        **send_kwargs,
+                    )
 
                 # Update last push date
                 from handlers.group import save_group_config
                 group_config["last_push_date"] = today
                 save_group_config(group_id, group_config)
 
-                logger.info(f"Group digest pushed to {group_id}")
+                if thread_id is not None:
+                    logger.info(f"Group digest pushed to {group_id} thread {thread_id}")
+                else:
+                    logger.info(f"Group digest pushed to {group_id}")
 
             except Exception as e:
                 logger.error(f"Failed to push digest to group {group_id}: {e}")
@@ -1048,8 +1195,178 @@ async def rate_limit_middleware(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle errors in the bot."""
+    """Handle errors in the bot — always notify the user so they don't get stuck."""
     logger.error(f"Exception while handling an update: {context.error}", exc_info=context.error)
+
+    if not isinstance(update, Update):
+        return
+
+    # Determine user language for localized error message
+    try:
+        user = update.effective_user
+        telegram_id = str(user.id) if user else None
+        lang = get_user_language(telegram_id) if telegram_id else "en"
+        ui = get_ui_locale(lang)
+    except Exception:
+        ui = {}
+
+    error_text = ui.get("global_error", (
+        "⚠️ 操作失败，请稍后重试。\n"
+        "Operation failed. Please try again later."
+    ))
+
+    keyboard = [[
+        InlineKeyboardButton(
+            ui.get("menu_main", "主菜单 / Main Menu"),
+            callback_data="back_to_start",
+        )
+    ]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    try:
+        if update.callback_query:
+            await safe_answer_callback_query(
+                update.callback_query, "⚠️ Error", show_alert=False
+            )
+            await update.callback_query.message.reply_text(
+                error_text, reply_markup=reply_markup
+            )
+        elif update.message:
+            await update.message.reply_text(
+                error_text, reply_markup=reply_markup
+            )
+        elif update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=error_text,
+                reply_markup=reply_markup,
+            )
+    except Exception as notify_err:
+        logger.warning(f"Failed to notify user about error: {notify_err}")
+
+
+async def handle_unmatched_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Save unhandled private text messages and reply with guidance (rate-limited)."""
+    from config import USER_MESSAGES_DIR, USER_TEXT_REPLY_LIMIT, USER_TEXT_MAX_LENGTH
+    user = update.effective_user
+    if not user:
+        return
+    telegram_id = str(user.id)
+    raw_text = update.message.text or ""
+    text = raw_text[:USER_TEXT_MAX_LENGTH]
+    now = datetime.now()
+
+    # Always save (text only, truncated to max length)
+    os.makedirs(USER_MESSAGES_DIR, exist_ok=True)
+    date_str = now.strftime("%Y-%m-%d")
+    filepath = os.path.join(USER_MESSAGES_DIR, f"{date_str}.jsonl")
+    import json as _json
+    entry = {
+        "telegram_id": telegram_id,
+        "username": user.username,
+        "first_name": user.first_name,
+        "text": text,
+        "truncated": len(raw_text) > USER_TEXT_MAX_LENGTH,
+        "timestamp": now.isoformat(),
+    }
+    try:
+        with open(filepath, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.error(f"Failed to save user message: {e}")
+
+    update_user_activity(telegram_id)
+    logger.info(f"Saved private text from {telegram_id}: {text[:80]}")
+
+    # Rate-limited reply
+    counter_key = f"text_reply_{telegram_id}_{date_str}"
+    count = context.bot_data.get(counter_key, 0)
+    if count >= USER_TEXT_REPLY_LIMIT:
+        return
+
+    context.bot_data[counter_key] = count + 1
+
+    lang = get_user_language(telegram_id)
+    ui = get_ui_locale(lang)
+    guide = ui.get("unmatched_text_guide", (
+        "📝 已收到你的消息。\n\n"
+        "如需操作，请使用以下命令：\n"
+        "  /start    — 主菜单\n"
+        "  /settings — 偏好设置\n"
+        "  /sources  — 信息源管理\n"
+        "  /help     — 帮助"
+    ))
+    keyboard = [[
+        InlineKeyboardButton(ui.get("menu_main", "主菜单"), callback_data="back_to_start"),
+        InlineKeyboardButton(ui.get("settings_title", "设置"), callback_data="update_preferences"),
+    ]]
+    await update.message.reply_text(guide, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
+async def resume_service_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle resume_service callback — user clicks to reactivate their paused service."""
+    from utils.json_storage import resume_user_service, track_event
+
+    query = update.callback_query
+    user = query.from_user
+    telegram_id = str(user.id)
+    lang = get_user_language(telegram_id)
+
+    resume_user_service(telegram_id)
+    track_event(telegram_id, "service_resumed")
+
+    alert_text = {
+        "zh": "✅ 已恢复接收",
+        "en": "✅ Delivery resumed",
+        "ja": "✅ 配信を再開しました",
+        "ko": "✅ 수신이 다시 시작되었습니다",
+    }.get(lang, "✅ Delivery resumed")
+    restored_text = {
+        "zh": (
+            f"✅ 欢迎回来，{user.first_name}！\n\n"
+            f"你的信息摘要推送已恢复。\n"
+            f"下次推送将按照正常周期自动送达。\n\n"
+            f"使用 /start 查看主菜单。"
+        ),
+        "en": (
+            f"✅ Welcome back, {user.first_name}!\n\n"
+            f"Your digest delivery has been restored.\n"
+            f"The next digest will arrive on the normal schedule.\n\n"
+            f"Use /start to open the main menu."
+        ),
+        "ja": (
+            f"✅ おかえりなさい、{user.first_name}さん！\n\n"
+            f"ダイジェスト配信を再開しました。\n"
+            f"次回から通常の周期で届きます。\n\n"
+            f"/start でメインメニューを開けます。"
+        ),
+        "ko": (
+            f"✅ 다시 오신 것을 환영합니다, {user.first_name}님!\n\n"
+            f"다이제스트 수신이 다시 활성화되었습니다.\n"
+            f"다음부터는 정상 주기로 받아보실 수 있습니다.\n\n"
+            f"/start 로 메인 메뉴를 열 수 있습니다."
+        ),
+    }.get(lang, "")
+    follow_up_text = {
+        "zh": "✅ 已为你恢复信息摘要服务，后续会按正常周期继续推送。",
+        "en": "✅ Your digest service has been restored and will continue on the normal schedule.",
+        "ja": "✅ ダイジェスト配信を再開しました。以降は通常の周期でお届けします。",
+        "ko": "✅ 다이제스트 서비스가 복구되었습니다. 이후부터는 정상 주기로 발송됩니다.",
+    }.get(lang, "✅ Your digest service has been restored.")
+
+    await safe_answer_callback_query(query, alert_text, show_alert=True)
+
+    try:
+        await query.edit_message_text(restored_text)
+    except Exception as exc:
+        logger.warning(f"Failed to edit resume confirmation message for {telegram_id}: {exc}")
+
+    try:
+        await context.bot.send_message(chat_id=int(telegram_id), text=follow_up_text)
+    except Exception as exc:
+        logger.warning(f"Failed to send follow-up resume confirmation to {telegram_id}: {exc}")
+
+    logger.info(f"User {telegram_id} resumed service")
 
 
 async def noop_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1225,9 +1542,19 @@ def main() -> None:
 
     application.add_handler(CallbackQueryHandler(group_setup_guide_callback, pattern="^group_setup_guide$"))
 
+    # Resume service callback (user reactivates paused service)
+    application.add_handler(CallbackQueryHandler(resume_service_callback, pattern="^resume_service$"))
+
     # Callback for help from unknown message
     application.add_handler(CallbackQueryHandler(show_help_callback, pattern="^show_help$"))
     application.add_handler(CallbackQueryHandler(noop_callback, pattern="^noop$"))
+
+    # Catch-all: save unhandled private text messages as user behavior data
+    application.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        handle_unmatched_private_text
+    ))
+    logger.info("Private text catch-all handler registered")
 
     # Error handler
     application.add_error_handler(error_handler)

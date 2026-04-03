@@ -29,6 +29,7 @@ from utils.json_storage import (
     get_disabled_sources_set,
     set_source_enabled,
     track_event,
+    update_user_activity,
 )
 from locales.ui_strings import get_ui_locale
 
@@ -369,6 +370,7 @@ async def handle_twitter_add(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if success:
         track_event(telegram_id, "source_added", {"category": "twitter", "name": feed_title, "url": feed_url})
+        update_user_activity(telegram_id)
 
         await update.message.reply_text(
             f"{ui['twitter_add_success']}\n"
@@ -483,8 +485,9 @@ async def handle_website_add(update: Update, context: ContextTypes.DEFAULT_TYPE)
     success = add_user_source(telegram_id, "websites", name, final_url)
 
     if success:
-        # 埋点：添加信息源
+        # 埋点：添加信息源 + 更新活跃时间
         track_event(telegram_id, "source_added", {"category": "websites", "name": name})
+        update_user_activity(telegram_id)
         
         added_msg = ui.get('website_added', '✅ Added {title}').format(title=html.escape(name))
         await update.message.reply_text(
@@ -631,8 +634,9 @@ async def handle_bulk_import(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # Add to user's sources
         success = add_user_source(telegram_id, category, name, url)
         if success:
-            # 埋点：批量添加信息源
+            # 埋点：批量添加信息源 + 更新活跃时间
             track_event(telegram_id, "source_added", {"category": category, "name": name, "bulk": True})
+            update_user_activity(telegram_id)
             success_count += 1
             results.append(f"  + {name}")
         else:
@@ -751,8 +755,9 @@ async def handle_delete_twitter(update: Update, context: ContextTypes.DEFAULT_TY
     success = remove_user_source(telegram_id, "twitter", source_name)
 
     if success:
-        # 埋点：删除信息源
+        # 埋点：删除信息源 + 更新活跃时间
         track_event(telegram_id, "source_removed", {"category": "twitter", "name": source_name})
+        update_user_activity(telegram_id)
         
         logger.info(f"Deleted Twitter source for user {telegram_id}: {source_name}")
         await query.edit_message_text(
@@ -784,8 +789,9 @@ async def handle_delete_website(update: Update, context: ContextTypes.DEFAULT_TY
     success = remove_user_source(telegram_id, "websites", source_name)
 
     if success:
-        # 埋点：删除信息源
+        # 埋点：删除信息源 + 更新活跃时间
         track_event(telegram_id, "source_removed", {"category": "websites", "name": source_name})
+        update_user_activity(telegram_id)
         
         logger.info(f"Deleted website source for user {telegram_id}: {source_name}")
         await query.edit_message_text(

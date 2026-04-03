@@ -20,74 +20,92 @@ else:
 
 logger = logging.getLogger(__name__)
 
-# ============ LLM Selection (Smart Auto-Config) ============
-# Set LLM=gemini or openai, then configure the corresponding keys
-LLM = os.getenv("LLM", "gemini").lower().strip()
+# ============ LLM Provider Chain (Multi-Provider Fallback) ============
+# LLM_PROVIDERS: comma-separated provider chain, e.g. "gemini,kimi,openai"
+# Each provider needs its own {NAME}_API_KEY, {NAME}_MODEL, {NAME}_API_URL
+# Provider types: "gemini" uses Gemini API; all others use OpenAI-compatible API
+#
+# Example .env:
+#   LLM_PROVIDERS=gemini,kimi,openai
+#   GEMINI_API_KEY=xxx
+#   GEMINI_MODEL=gemini-3-flash-preview
+#   KIMI_API_KEY=xxx
+#   KIMI_MODEL=moonshot-v1-8k
+#   KIMI_API_URL=https://api.moonshot.cn/v1/chat/completions
+#   OPENAI_API_KEY=xxx
+#   OPENAI_MODEL=gpt-4o
 
-# Auto-configure based on LLM selection
-if LLM == "openai":
-    # OpenAI (or OpenAI-compatible: Kimi, DeepSeek, etc.)
-    LLM_PROVIDER = "openai"
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
-    OPENAI_API_URL = os.getenv("OPENAI_API_URL", "")
-
-    # Log provider info
-    if OPENAI_API_URL:
-        logger.info(f"🤖 Using OpenAI-compatible API: {OPENAI_MODEL}")
-    else:
-        logger.info(f"🤖 Using OpenAI: {OPENAI_MODEL}")
-
-elif LLM == "gemini":
-    # Google Gemini (default)
-    LLM_PROVIDER = "gemini"
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
-    GEMINI_THINKING_LEVEL = os.getenv("GEMINI_THINKING_LEVEL", "HIGH")
-
-    # Build Gemini API URL: supports both base URL and full URL
-    _api_base = os.getenv("GEMINI_API_URL", "").rstrip("/")
-    if _api_base:
-        if "/v1beta/models/" in _api_base or ":generateContent" in _api_base:
-            GEMINI_API_URL = _api_base
-        else:
-            GEMINI_API_URL = f"{_api_base}/v1beta/models/{GEMINI_MODEL}:generateContent"
-    else:
-        GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-
-    logger.info(f"✨ Using Gemini: {GEMINI_MODEL}")
-
-else:
-    logger.warning(f"⚠️ Unknown LLM: {LLM}, falling back to Gemini")
-    LLM_PROVIDER = "gemini"
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
-    GEMINI_THINKING_LEVEL = os.getenv("GEMINI_THINKING_LEVEL", "HIGH")
-    GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-
-# Ensure all variables exist (for compatibility)
-if LLM_PROVIDER == "gemini":
-    # Set dummy OpenAI vars
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
-    OPENAI_API_URL = os.getenv("OPENAI_API_URL", "")
-else:
-    # Set dummy Gemini vars
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
-    GEMINI_THINKING_LEVEL = os.getenv("GEMINI_THINKING_LEVEL", "HIGH")
-    GEMINI_API_URL = ""
-
-# Validate required API keys
 import sys
-if LLM_PROVIDER == "gemini" and not GEMINI_API_KEY:
-    logger.error("❌ GEMINI_API_KEY not set! Please check your .env file.")
-    logger.error("   Set GEMINI_API_KEY=your_api_key in .env")
+
+_raw_providers = os.getenv("LLM_PROVIDERS", "").strip()
+if not _raw_providers:
+    _raw_providers = os.getenv("LLM", "gemini").strip()
+
+GEMINI_THINKING_LEVEL = os.getenv("GEMINI_THINKING_LEVEL", "HIGH")
+
+LLM_CHAIN: list = []
+
+for _name in _raw_providers.split(","):
+    _name = _name.strip().lower()
+    if not _name:
+        continue
+
+    _prefix = _name.upper()
+    _api_key = os.getenv(f"{_prefix}_API_KEY", "")
+    _model = os.getenv(f"{_prefix}_MODEL", "")
+    _api_url = os.getenv(f"{_prefix}_API_URL", "")
+
+    if not _api_key:
+        logger.warning(f"⚠️ {_prefix}_API_KEY not set, skipping provider '{_name}'")
+        continue
+
+    if _name == "gemini":
+        if not _model:
+            _model = "gemini-3-flash-preview"
+        _base = _api_url.rstrip("/") if _api_url else ""
+        if _base:
+            if "/v1beta/models/" in _base or ":generateContent" in _base:
+                _resolved_url = _base
+            else:
+                _resolved_url = f"{_base}/v1beta/models/{_model}:generateContent"
+        else:
+            _resolved_url = f"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent"
+
+        LLM_CHAIN.append({
+            "name": _name,
+            "type": "gemini",
+            "api_key": _api_key,
+            "model": _model,
+            "api_url": _resolved_url,
+        })
+        logger.info(f"✨ LLM chain [{len(LLM_CHAIN)}]: Gemini ({_model})")
+    else:
+        if not _model:
+            _model = "gpt-4o" if _name == "openai" else _name
+        _resolved_url = _api_url or "https://api.openai.com/v1/chat/completions"
+
+        LLM_CHAIN.append({
+            "name": _name,
+            "type": "openai",
+            "api_key": _api_key,
+            "model": _model,
+            "api_url": _resolved_url,
+        })
+        logger.info(f"🤖 LLM chain [{len(LLM_CHAIN)}]: {_name} ({_model})")
+
+if not LLM_CHAIN:
+    logger.error("❌ No valid LLM provider configured! Check LLM_PROVIDERS and API keys in .env")
     sys.exit(1)
-elif LLM_PROVIDER == "openai" and not OPENAI_API_KEY:
-    logger.error("❌ OPENAI_API_KEY not set! Please check your .env file.")
-    logger.error("   Set OPENAI_API_KEY=your_api_key in .env")
-    sys.exit(1)
+
+LLM_PROVIDER = LLM_CHAIN[0]["name"]
+
+# Backward-compatible variables (used by some legacy code paths)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+GEMINI_API_URL = next((p["api_url"] for p in LLM_CHAIN if p["type"] == "gemini"), "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+OPENAI_API_URL = os.getenv("OPENAI_API_URL", "")
 
 # Telegram Bot
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -218,6 +236,9 @@ DAILY_STATS_DIR = os.path.join(DATA_DIR, "daily_stats")
 RAW_CONTENT_DIR = os.path.join(DATA_DIR, "raw_content")
 USER_SOURCES_DIR = os.path.join(DATA_DIR, "user_sources")  # Per-user source configs
 PREFETCH_CACHE_DIR = os.path.join(DATA_DIR, "prefetch_cache")  # 预抓取缓存目录
+USER_MESSAGES_DIR = os.path.join(DATA_DIR, "user_messages")  # 私聊文本消息存档
+USER_TEXT_REPLY_LIMIT = _parse_int_env("USER_TEXT_REPLY_LIMIT", 10)
+USER_TEXT_MAX_LENGTH = _parse_int_env("USER_TEXT_MAX_LENGTH", 500)
 
 
 # ============ Default Sources Configuration ============

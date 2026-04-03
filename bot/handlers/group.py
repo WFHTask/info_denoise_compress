@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 
 from telegram import (
+    ForceReply,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Update,
@@ -50,6 +51,43 @@ logger = logging.getLogger(__name__)
     GROUP_PUSH_TIME,
     GROUP_LANGUAGE,
 ) = range(100, 106)
+
+
+def _get_message_thread_id(update: Update) -> Optional[int]:
+    """Extract the current forum topic/thread id, if the message is inside one."""
+    def _normalize_thread_id(value: Any) -> Optional[int]:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        return None
+
+    query = update.callback_query
+    if query and query.message:
+        thread_id = _normalize_thread_id(getattr(query.message, "message_thread_id", None))
+        if thread_id is not None:
+            return thread_id
+
+    message = update.message
+    if message:
+        return _normalize_thread_id(getattr(message, "message_thread_id", None))
+
+    return None
+
+
+def _remember_setup_thread_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Optional[int]:
+    """Persist the current setup topic/thread for the whole onboarding flow."""
+    thread_id = _get_message_thread_id(update)
+    context.chat_data["setup_message_thread_id"] = thread_id
+    return thread_id
+
+
+def _get_setup_thread_kwargs(context: ContextTypes.DEFAULT_TYPE) -> Dict[str, Any]:
+    """Return Telegram send kwargs for the currently bound setup topic."""
+    thread_id = context.chat_data.get("setup_message_thread_id")
+    if thread_id is None:
+        return {}
+    return {"message_thread_id": thread_id}
 
 
 def _get_group_config_path(group_id: str) -> str:
@@ -194,6 +232,7 @@ async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     # Track which admin started setup
     context.chat_data["setup_admin_id"] = update.effective_user.id
+    _remember_setup_thread_id(update, context)
 
     if existing:
         keyboard = [
@@ -229,6 +268,7 @@ async def _start_ai_onboarding(
     context.chat_data["conversation_history"] = []
     context.chat_data["current_round"] = 1
     context.chat_data["setup_admin_id"] = user.id
+    _remember_setup_thread_id(update, context)
 
     raw_code = getattr(user, "language_code", None) if user else None
     lang = normalize_language_code(raw_code) if raw_code else "en"
@@ -269,7 +309,8 @@ async def _start_ai_onboarding(
         if is_callback:
             await context.bot.send_message(
                 chat_id=chat.id, text=error_text,
-                reply_markup=InlineKeyboardMarkup(keyboard)
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                **_get_setup_thread_kwargs(context),
             )
         else:
             await update.message.reply_text(
@@ -283,8 +324,11 @@ async def _start_ai_onboarding(
     await context.bot.send_message(
         chat_id=chat.id,
         text=f"{step_text}\n\n{ai_response}\n\n"
-             f"💡 <i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>",
-        parse_mode="HTML"
+             f"<i>{ui.get('group_admin_hint', 'Only {admin} can respond').format(admin=admin_name)}</i>\n\n"
+             f"<i>{ui.get('group_reply_hint', 'Please REPLY to this message to respond (do not send a new message or @)')}</i>",
+        parse_mode="HTML",
+        reply_markup=ForceReply(selective=True),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_ONBOARD_R1
@@ -301,7 +345,6 @@ async def handle_onboard_r1(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     chat = update.effective_chat
 
     # Detect language from admin's reply
-    lang_before = context.chat_data.get("language", "en")
     detected_lang = detect_language_from_text(user_message)
     if detected_lang and is_supported_language(detected_lang):
         context.chat_data["language"] = detected_lang
@@ -343,7 +386,10 @@ async def handle_onboard_r1(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END
 
     step_text = ui.get("onboarding_step", "Step {current}/{total}").format(current=2, total=3)
-    await update.message.reply_text(f"{step_text}\n\n{ai_response}")
+    await update.message.reply_text(
+        f"{step_text}\n\n{ai_response}",
+        reply_markup=ForceReply(selective=True),
+    )
 
     return GROUP_ONBOARD_R2
 
@@ -471,7 +517,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
     await context.bot.send_message(
         chat_id=chat.id,
         text=f"<i>{ui.get('saving_prefs', '⏳ Saving preferences...')}</i>",
-        parse_mode="HTML"
+        parse_mode="HTML",
+        **_get_setup_thread_kwargs(context),
     )
 
     profile_summary = context.chat_data.get("profile_summary", "")
@@ -498,7 +545,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_message(
             chat_id=chat.id,
             text=ui.get("error_occurred", "An error occurred. Please try again."),
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            **_get_setup_thread_kwargs(context),
         )
         return GROUP_CONFIRM_PROFILE
 
@@ -522,7 +570,8 @@ async def handle_confirm_profile(update: Update, context: ContextTypes.DEFAULT_T
         chat_id=chat.id,
         text=f"✅ {ui.get('group_profile_saved', 'Group profile saved!')}\n\n"
              f"{ui['group_select_push_time']}",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_PUSH_TIME
@@ -556,8 +605,15 @@ async def handle_adjust_profile_prompt(update: Update, context: ContextTypes.DEF
 
     await query.edit_message_text(
         f"{ui.get('adjust_profile_prompt', '✏️ How would you like to adjust the profile?')}\n\n"
-        f"{ui.get('adjust_profile_current', 'Current profile:')}\n{profile_summary}\n\n"
-        f"{ui.get('adjust_profile_hint', 'Type your adjustment request:')}"
+        f"{ui.get('adjust_profile_current', 'Current profile:')}\n{profile_summary}"
+    )
+
+    chat = update.effective_chat
+    await context.bot.send_message(
+        chat_id=chat.id,
+        text=f"{ui.get('adjust_profile_hint', 'Type your adjustment request:')}",
+        reply_markup=ForceReply(selective=True),
+        **_get_setup_thread_kwargs(context),
     )
 
     return GROUP_ADJUST
@@ -645,8 +701,6 @@ async def handle_push_time(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     hour = int(query.data.replace("group_time_", ""))
     context.chat_data["push_hour"] = hour
 
-    chat = update.effective_chat
-    group_id = str(chat.id) if chat else None
     lang = context.chat_data.get("language", "en")
     ui = get_ui_locale(lang)
 
@@ -683,6 +737,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     lang = query.data.replace("group_lang_", "")
     chat = update.effective_chat
     group_id = str(chat.id)
+    thread_id = context.chat_data.get("setup_message_thread_id")
 
     config = {
         "group_id": group_id,
@@ -694,6 +749,8 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
         "created": datetime.now().isoformat(),
         "enabled": True,
     }
+    if thread_id is not None:
+        config["message_thread_id"] = thread_id
 
     save_group_config(group_id, config)
 
@@ -702,12 +759,14 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     ui = get_ui_locale(lang)
 
     profile_preview = config["profile"][:120] + "..." if len(config["profile"]) > 120 else config["profile"]
+    thread_note = f"\nTopic: {thread_id}" if thread_id is not None else ""
 
     await query.edit_message_text(
         f"{ui['group_setup_complete']}\n\n"
         f"{ui['group_setup_interests'].format(profile=profile_preview)}\n"
         f"{ui['group_setup_push'].format(hour=config['push_hour'])}\n"
-        f"{ui['group_setup_lang'].format(lang_name=lang_names.get(lang, lang))}\n\n"
+        f"{ui['group_setup_lang'].format(lang_name=lang_names.get(lang, lang))}"
+        f"{thread_note}\n\n"
         f"{ui['group_setup_footer']}"
     )
 
@@ -734,13 +793,16 @@ async def handle_group_view(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         ui = get_ui_locale(lang)
         status = ui['group_status_enabled'] if config.get('enabled', True) else ui['group_status_disabled']
         profile_preview = config.get('profile', 'N/A')
+        thread_id = config.get("message_thread_id")
         if len(profile_preview) > 200:
             profile_preview = profile_preview[:200] + "..."
+        thread_line = f"Thread ID: {thread_id}\n" if thread_id is not None else ""
         await query.edit_message_text(
             f"{ui['group_view_title']}\n\n"
             f"{ui['group_label_interests']}:\n{profile_preview}\n\n"
             f"{ui['group_label_push_time']}: {config.get('push_hour', 9)}:00\n"
             f"{ui['group_label_language']}: {config.get('language', 'en')}\n"
+            f"{thread_line}"
             f"{ui['group_label_status']}: {status}\n"
             f"{ui['group_label_created']}: {config.get('created', 'N/A')[:10]}\n\n"
             f"{ui['group_view_footer']}"
@@ -775,8 +837,6 @@ async def handle_group_disable(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def handle_group_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start AI-driven update flow (restart onboarding)."""
-    query = update.callback_query
-
     if not _is_setup_admin(update, context):
         if update.effective_user:
             context.chat_data["setup_admin_id"] = update.effective_user.id
