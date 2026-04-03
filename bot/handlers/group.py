@@ -55,15 +55,22 @@ logger = logging.getLogger(__name__)
 
 def _get_message_thread_id(update: Update) -> Optional[int]:
     """Extract the current forum topic/thread id, if the message is inside one."""
+    def _normalize_thread_id(value: Any) -> Optional[int]:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        return None
+
     query = update.callback_query
     if query and query.message:
-        thread_id = getattr(query.message, "message_thread_id", None)
+        thread_id = _normalize_thread_id(getattr(query.message, "message_thread_id", None))
         if thread_id is not None:
             return thread_id
 
     message = update.message
     if message:
-        return getattr(message, "message_thread_id", None)
+        return _normalize_thread_id(getattr(message, "message_thread_id", None))
 
     return None
 
