@@ -32,6 +32,7 @@ from utils.json_storage import (
     get_user_profile,
     track_event,
     get_user_language,
+    update_user_activity,
 )
 from utils.auth import whitelist_required
 from services.language_service import normalize_language_code, get_language_native_name
@@ -54,8 +55,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     chat = update.effective_chat
     telegram_id = str(user.id)
 
-    # 埋点：会话开始
+    # 埋点：会话开始 + 更新活跃时间
     track_event(telegram_id, "session_start", {"command": "start"})
+    update_user_activity(telegram_id)
 
     # In groups, /start acts as a setup guide instead of opening the private main menu.
     if chat and chat.type in ("group", "supergroup"):

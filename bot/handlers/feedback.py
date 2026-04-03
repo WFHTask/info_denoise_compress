@@ -17,7 +17,7 @@ from telegram.ext import (
 )
 
 from utils.telegram_utils import safe_answer_callback_query
-from utils.json_storage import save_feedback, get_user, track_event, get_user_language
+from utils.json_storage import save_feedback, get_user, track_event, get_user_language, update_user_activity
 from locales.ui_strings import get_ui_locale
 
 logger = logging.getLogger(__name__)
@@ -150,8 +150,9 @@ async def handle_feedback_positive(update: Update, context: ContextTypes.DEFAULT
         item_feedbacks=item_feedbacks,
     )
 
-    # 埋点：正面反馈
+    # 埋点：正面反馈 + 更新活跃时间
     track_event(telegram_id, "feedback_positive", {"report_id": report_id})
+    update_user_activity(telegram_id)
 
     # Clear item feedbacks after saving
     context.user_data.pop("item_feedbacks", None)
@@ -247,8 +248,9 @@ async def handle_reason_selection(update: Update, context: ContextTypes.DEFAULT_
             item_feedbacks=item_feedbacks,
         )
 
-        # 埋点：负面反馈
+        # 埋点：负面反馈 + 更新活跃时间
         track_event(telegram_id, "feedback_negative", {"reason": selected_reason})
+        update_user_activity(telegram_id)
 
         # Clear item feedbacks after saving
         context.user_data.pop("item_feedbacks", None)
@@ -389,9 +391,10 @@ async def handle_item_feedback(update: Update, context: ContextTypes.DEFAULT_TYP
         }]
     )
 
-    # 埋点：单条内容反馈
+    # 埋点：单条内容反馈 + 更新活跃时间
     # item_click 是强意图信号（用户点击查看原文）
     # item_dislike 是负向信号（用户不感兴趣）
+    update_user_activity(telegram_id)
     event_type = "item_click" if feedback_type == "click" else "item_dislike"
     track_event(telegram_id, event_type, {
         "item_id": item_id, 

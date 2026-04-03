@@ -29,6 +29,7 @@ from utils.json_storage import (
     get_user_language,
     get_user_setting,
     set_user_setting,
+    update_user_activity,
 )
 from utils.permissions import check_feature
 from services.language_service import (
@@ -200,8 +201,9 @@ async def handle_profile_update(update: Update, context: ContextTypes.DEFAULT_TY
         # Save updated profile
         save_user_profile(telegram_id, updated_profile)
 
-        # 埋点：设置变更
+        # 埋点：设置变更 + 更新活跃时间
         track_event(telegram_id, "settings_changed", {"action": "update", "input": user_input[:100]})
+        update_user_activity(telegram_id)
 
         await update.message.reply_text(
             f"{ui.get('settings_updated_success', '✅ Preferences Updated')}\n"
@@ -280,8 +282,9 @@ Web3 new user, general interest
 
     save_user_profile(telegram_id, default_profile)
 
-    # 埋点：设置重置
+    # 埋点：设置重置 + 更新活跃时间
     track_event(telegram_id, "settings_changed", {"action": "reset"})
+    update_user_activity(telegram_id)
 
     await query.edit_message_text(
         f"{ui.get('settings_reset_done', '✅ Preferences Reset')}\n"
@@ -432,8 +435,9 @@ async def change_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     success = update_user_language(telegram_id, lang_code)
     
     if success:
-        # Track event
+        # Track event + 更新活跃时间
         track_event(telegram_id, "settings_changed", {"action": "language", "new_lang": lang_code})
+        update_user_activity(telegram_id)
         
         # Get new UI strings
         ui = get_ui_locale(lang_code)
@@ -527,6 +531,7 @@ async def set_push_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     ok = set_user_setting(telegram_id, "push_interval_hours", hours)
     if ok:
         track_event(telegram_id, "settings_changed", {"action": "push_interval", "hours": hours})
+        update_user_activity(telegram_id)
     msg = ui.get("settings_push_interval_saved", "已设置为每 {hours} 小时推送一次").format(hours=hours) if ok else ui.get("settings_save_failed", "保存失败，请重试")
 
     keyboard = [[InlineKeyboardButton(ui["back"], callback_data="settings_back")]]
