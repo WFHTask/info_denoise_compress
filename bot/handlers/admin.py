@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 WAITING_FOR_USER_ID = 100
 WAITING_FOR_BULK_SOURCES = 101
 WAITING_FOR_CTA_TEXT = 102
+WAITING_FOR_INACTIVE_DAYS = 103
 
 
 def is_admin(user_id: int) -> bool:
@@ -69,6 +70,7 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📡 信息源健康", callback_data="admin_source_health")],
         [InlineKeyboardButton("📢 群组管理", callback_data="admin_group_manage")],
         [InlineKeyboardButton("📝 群简报 CTA 配置", callback_data="admin_cta_config")],
+        [InlineKeyboardButton("⏸️ 不活跃暂停配置", callback_data="admin_inactive_config")],
         [InlineKeyboardButton("🎫 生成兑换码", callback_data="admin_gen_code")],
         [InlineKeyboardButton(ui.get("admin_plan_config", "📋 方案与权限"), callback_data="admin_plan_config")],
         [InlineKeyboardButton(f"{toggle_emoji} {toggle_text}", callback_data="admin_wl_toggle")],
@@ -1193,6 +1195,199 @@ async def admin_cta_reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await admin_cta_config(update, context)
 
 
+# ============ Inactive Pause Configuration ============
+
+DEFAULT_INACTIVE_PAUSE_DAYS = 7
+
+
+async def admin_inactive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show inactive pause configuration."""
+    query = update.callback_query
+    await query.answer()
+
+    if not is_admin(query.from_user.id):
+        return
+
+    from utils.json_storage import get_system_config, get_inactive_users
+    current_days = get_system_config("inactive_pause_days", DEFAULT_INACTIVE_PAUSE_DAYS)
+    inactive_users = get_inactive_users(current_days)
+    paused_users = [u for u in get_users() if u.get("service_paused")]
+
+    keyboard = [
+        [InlineKeyboardButton("✏️ 修改天数", callback_data="admin_inactive_edit")],
+        [InlineKeyboardButton(
+            f"📢 发送活跃确认推送（{len(get_users())} 人）",
+            callback_data="admin_activity_confirm_push"
+        )],
+        [InlineKeyboardButton("« 返回管理面板", callback_data="admin_panel")],
+    ]
+
+    text = (
+        f"⏸️ <b>不活跃暂停配置</b>\n"
+        f"{'─' * 24}\n\n"
+        f"📌 当前设置：连续 <b>{current_days}</b> 天无活动后暂停服务\n\n"
+        f"📊 当前状态：\n"
+        f"  • 即将触发暂停：{len(inactive_users)} 人\n"
+        f"  • 已暂停服务：{len(paused_users)} 人\n\n"
+        f"💡 「活动」定义：点击链接、给反馈、改设置、发命令等主动行为。\n"
+        f"被动收到推送不算活动。"
+    )
+
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
+
+
+async def admin_inactive_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Prompt admin to enter new inactive days value."""
+    from utils.conv_manager import activate_conv
+    activate_conv(context, "admin")
+
+    query = update.callback_query
+    await query.answer()
+
+    if not is_admin(query.from_user.id):
+        return ConversationHandler.END
+
+    from utils.json_storage import get_system_config
+    current_days = get_system_config("inactive_pause_days", DEFAULT_INACTIVE_PAUSE_DAYS)
+
+    await query.edit_message_text(
+        f"✏️ <b>修改不活跃暂停天数</b>\n\n"
+        f"当前值：{current_days} 天\n\n"
+        f"请输入新的天数（1-90 之间的整数）：",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("取消", callback_data="admin_inactive_config")]
+        ]),
+        parse_mode="HTML"
+    )
+
+    return WAITING_FOR_INACTIVE_DAYS
+
+
+async def handle_inactive_days_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Handle admin's inactive days input."""
+    if not is_admin(update.effective_user.id):
+        return ConversationHandler.END
+
+    text = update.message.text.strip()
+
+    try:
+        days = int(text)
+        if days < 1 or days > 90:
+            await update.message.reply_text("❌ 请输入 1-90 之间的整数。")
+            return WAITING_FOR_INACTIVE_DAYS
+    except ValueError:
+        await update.message.reply_text("❌ 请输入有效的数字。")
+        return WAITING_FOR_INACTIVE_DAYS
+
+    from utils.json_storage import set_system_config
+    set_system_config("inactive_pause_days", days)
+
+    keyboard = [
+        [InlineKeyboardButton("⏸️ 查看暂停配置", callback_data="admin_inactive_config")],
+        [InlineKeyboardButton("« 返回管理面板", callback_data="admin_panel")],
+    ]
+
+    await update.message.reply_text(
+        f"✅ 已更新：连续 <b>{days}</b> 天无活动后暂停服务。",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML"
+    )
+
+    logger.info(f"Admin set inactive_pause_days to {days}")
+    return ConversationHandler.END
+
+
+async def admin_activity_confirm_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send a one-time activity confirmation push to all users."""
+    query = update.callback_query
+    await query.answer()
+
+    if not is_admin(query.from_user.id):
+        return
+
+    keyboard = [
+        [InlineKeyboardButton("✅ 确认发送", callback_data="admin_activity_confirm_execute")],
+        [InlineKeyboardButton("取消", callback_data="admin_inactive_config")],
+    ]
+
+    all_users = get_users()
+    await query.edit_message_text(
+        f"📢 <b>活跃确认推送</b>\n"
+        f"{'─' * 24}\n\n"
+        f"将向 <b>{len(all_users)}</b> 位用户发送活跃确认消息。\n\n"
+        f"用户点击「继续接收」按钮 = 确认活跃\n"
+        f"未回应的用户将在下次检查时被标记为暂停。\n\n"
+        f"⚠️ 此操作不可撤回，确认发送？",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML"
+    )
+
+
+async def admin_activity_confirm_execute(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Execute the activity confirmation push to all users."""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    query = update.callback_query
+    await query.answer("正在发送...")
+
+    if not is_admin(query.from_user.id):
+        return
+
+    all_users = get_users()
+    success_count = 0
+    fail_count = 0
+
+    await query.edit_message_text("📤 正在发送活跃确认推送...")
+
+    for user in all_users:
+        telegram_id = user.get("telegram_id")
+        if not telegram_id:
+            continue
+
+        lang = get_user_language(telegram_id)
+        from locales.ui_strings import get_ui_locale
+        ui = get_ui_locale(lang)
+
+        confirm_text = (
+            f"👋 {user.get('first_name', '')}，好久不见！\n\n"
+            f"为了确保你仍然需要我们的信息摘要服务，"
+            f"请点击下方按钮确认继续接收。\n\n"
+            f"如果没有回应，你的推送将会被暂停。\n"
+            f"随时可以重新启用 😊"
+        )
+
+        confirm_keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ 继续接收", callback_data="resume_service")],
+        ])
+
+        try:
+            await context.bot.send_message(
+                chat_id=int(telegram_id),
+                text=confirm_text,
+                reply_markup=confirm_keyboard,
+            )
+            success_count += 1
+        except Exception as e:
+            fail_count += 1
+            logger.warning(f"Failed to send activity confirm to {telegram_id}: {e}")
+
+    keyboard = [[InlineKeyboardButton("« 返回管理面板", callback_data="admin_panel")]]
+
+    await context.bot.send_message(
+        chat_id=query.message.chat.id,
+        text=(
+            f"📢 活跃确认推送完成\n"
+            f"{'─' * 24}\n\n"
+            f"✅ 发送成功：{success_count}\n"
+            f"❌ 发送失败：{fail_count}\n\n"
+            f"未点击确认的用户将在下一轮检查时被暂停推送。"
+        ),
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+    logger.info(f"Activity confirmation push: {success_count} sent, {fail_count} failed")
+
+
 # ============ Handler Registration ============
 
 def get_admin_handlers():
@@ -1204,6 +1399,7 @@ def get_admin_handlers():
             CallbackQueryHandler(admin_wl_del_callback, pattern="^admin_wl_del$"),
             CallbackQueryHandler(admin_bulk_add_sources, pattern="^admin_bulk_add_sources$"),
             CallbackQueryHandler(admin_cta_edit, pattern="^admin_cta_edit$"),
+            CallbackQueryHandler(admin_inactive_edit, pattern="^admin_inactive_edit$"),
         ],
         states={
             WAITING_FOR_USER_ID: [
@@ -1215,11 +1411,15 @@ def get_admin_handlers():
             WAITING_FOR_CTA_TEXT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_cta_text_input),
             ],
+            WAITING_FOR_INACTIVE_DAYS: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_inactive_days_input),
+            ],
         },
         fallbacks=[
             CallbackQueryHandler(cancel_admin_action, pattern="^admin_panel$"),
             CallbackQueryHandler(source_health_dashboard, pattern="^admin_source_health$"),
             CallbackQueryHandler(admin_cta_config, pattern="^admin_cta_config$"),
+            CallbackQueryHandler(admin_inactive_config, pattern="^admin_inactive_config$"),
         ],
         per_message=False,
     )
@@ -1243,6 +1443,10 @@ def get_admin_handlers():
         # CTA configuration handlers
         CallbackQueryHandler(admin_cta_config, pattern="^admin_cta_config$"),
         CallbackQueryHandler(admin_cta_reset, pattern="^admin_cta_reset$"),
+        # Inactive pause configuration handlers
+        CallbackQueryHandler(admin_inactive_config, pattern="^admin_inactive_config$"),
+        CallbackQueryHandler(admin_activity_confirm_push, pattern="^admin_activity_confirm_push$"),
+        CallbackQueryHandler(admin_activity_confirm_execute, pattern="^admin_activity_confirm_execute$"),
         # Plan & permissions config
         CallbackQueryHandler(admin_plan_config_callback, pattern="^admin_plan_config$"),
         CallbackQueryHandler(plan_config_toggle_feature, pattern="^cfg_feat_[fp]_"),
